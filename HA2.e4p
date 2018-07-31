@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
-<!-- eric project file for project SimulationHA -->
-<!-- Saved: 2018-07-31, 13:39:32 -->
+<!-- eric project file for project HA2 -->
+<!-- Saved: 2018-07-27, 07:46:44 -->
 <!-- Copyright (C) 2018 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
-  <Hash>c0b99506e0e12a977a27869f95f1560f94ef2815</Hash>
+  <Hash>7be47ce019134715c4ed297a6d2de7eab0df4faf</Hash>
   <ProgLanguage mixed="0">Python3</ProgLanguage>
   <ProjectType>PyQt5</ProjectType>
   <Version>0.1</Version>
@@ -13,10 +13,18 @@
   <Email></Email>
   <Eol index="0"/>
   <Sources>
+    <Source>BaseControl/LineItem.py</Source>
+    <Source>BaseControl/TextItem.py</Source>
+    <Source>BaseControl/__init__.py</Source>
+    <Source>QGraphicsItem.py</Source>
+    <Source>QGraphicsScene.py</Source>
+    <Source>QGraphicsSelf.py</Source>
+    <Source>Ui_mainwindow.py</Source>
     <Source>__init__.py</Source>
+    <Source>main.py</Source>
   </Sources>
   <Forms>
-    <Form>aa.ui</Form>
+    <Form>mainwindow.ui</Form>
   </Forms>
   <Vcs>
     <VcsType>None</VcsType>
