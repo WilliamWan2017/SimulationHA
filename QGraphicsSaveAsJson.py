@@ -1,6 +1,7 @@
 
 import functools
 import random
+import json
 import sys
 from BaseControl.TextItem import TextItem, TextItemDlg
 from BaseControl.LineItem import LineItem, LineItemDlg
@@ -147,34 +148,25 @@ class MainForm(QDialog):
                 if self.filename else ".")
         fname,filetype = QFileDialog.getOpenFileName(self,
                 "Page Designer - Open", path,
-                "Page Designer Files (*.pgd)")
+                "Page Designer Files (*.json)")
         if not fname:
             return
         self.filename = fname
         fh = None
         try:
-            fh = QFile(self.filename)
-            if not fh.open(QIODevice.ReadOnly):
-                raise IOError(str(fh.errorString()))
+       
             items = self.scene.items()
             while items:
                 item = items.pop()
                 self.scene.removeItem(item)
                 del item
-            #self.addBorders()
-            stream = QDataStream(fh)
-            stream.setVersion(QDataStream.Qt_5_7)
-            magic = stream.readInt32()
-            if magic != MagicNumber:
-                raise IOError("not a valid .pgd file")
-            fileVersion = stream.readInt16()
-            if fileVersion != FileVersion:
-                raise IOError("unrecognised .pgd file version")
-            self.readLines=[]
-            while not fh.atEnd():
-                self.readItemFromStream(stream)
+            #self.addBorders()         dictItemJson={}
+            self.dicItem={} 
+            with open (self.filename, 'r') as fh:        
+                self.dicItem=json.load(fh) 
+            for key, item in self.dicItem.items():
+                self.readItemFrom( item) 
             self.DrawLineFromRead()
-            
         except IOError as e:
             QMessageBox.warning(self, "Page Designer -- Open Error",
                     "Failed to open {0}: {1}".format(self.filename, e))
@@ -226,104 +218,58 @@ class MainForm(QDialog):
             path = "."
             fname,filetype = QFileDialog.getSaveFileName(self,
                     "Page Designer - Save As", path,
-                    "Page Designer Files (*.pgd)")
+                    "Page Designer Files (*.json)")
             if not fname:
                 return
             self.filename = fname
         fh = None
-        try:
-            fh = QFile(self.filename)
-            if not fh.open(QIODevice.WriteOnly):
-                raise IOError(str(fh.errorString()))
+        #try: 
+        if 1==1:
             self.scene.clearSelection()
-            stream = QDataStream(fh)
-            stream.setVersion(QDataStream.Qt_5_7)
-            stream.writeInt32(MagicNumber)
-            stream.writeInt16(FileVersion)
+            dictItemJson={}
+         
             for item in self.scene.items():
-                self.writeItemToStream(stream, item)
-        except IOError as e:
-            QMessageBox.warning(self, "Page Designer -- Save Error",
-                    "Failed to save {0}: {1}".format(self.filename, e))
-        finally:
-            if fh is not None:
-                fh.close()
+               dictItemJson[item.boxName]=item.toSaveJson()
+            with open (self.filename, 'w') as fh:             
+                json.dump(dictItemJson, fh)
+        #except IOError as e:
+        #    QMessageBox.warning(self, "Page Designer -- Save Error",
+        #            "Failed to save {0}: {1}".format(self.filename, e))
+        #finally:
+        #    if fh is not None:
+        #       fh.close()
+        #    pass
         global Dirty
         Dirty = False
 
  
     def DrawLineFromRead(self):
-        for ln in self.readLines:            
-            #self.readLines.append((boxName,strFromBox, strToBox,  position, self.scene, self, Qt.SolidLine, None, matrix, rotateangle))
-            n=LineItem( ln[0],self.dicText[ln[1]],self.dicText[ln[2]], ln[3], ln[4], ln[5], ln[6],ln[7], ln[8])
-            self.dicLine[ln[0]]=n;
-            n.setRotation(ln[9])
-    def readItemFromStream(self, stream, offset=0):
-        type = ""
-        position = QPointF()
-        matrix = QTransform()
-        rotateangle=0#add by yangrongdong
-        type=stream.readQString()
-        stream >> position >> matrix
-        if offset:
-            position += QPointF(offset, offset)
-        if type == "Text":
-            boxName=stream.readQString();
-            text = ""
-            font = QFont()
-            text=stream.readQString()
-            stream >> font
-            rotateangle=stream.readFloat() 
-            tx=TextItem(boxName, text, position, self.scene, self, font, matrix)
-            self.dicText[boxName]=tx;
-            tx.setRotation(rotateangle)
+            for key, ln in self.dicItem.items():
+                if ln["type"] == "Line":    
+                    n=LineItem( ln["boxName"],self.dicText[ln["strFromBox"]],self.dicText[ln["strToBox"]], 
+                    None, self.scene, self, ln["style"])
+                    self.dicLine[ln["boxName"]]=n;
+                    n.setRotation(ln["rotation"])
+    def readItemFrom(self, item): 
+        if item["type"] == "Text": 
+            tx=TextItem(item, '', '',  self.scene, self)
+            self.dicText[tx.boxName]=tx;
+            tx.setRotation(item["rotation"] )
         elif type == "Box":
-            rect = QRectF()
-            stream >> rect
-            style = Qt.PenStyle(stream.readInt16())
-            rotateangle=stream.readFloat()
-            bx=BoxItem(position, self.scene, style, rect, matrix)
-            bx.setRotation(rotateangle)       
+            pass
         elif type == "Pixmap":
-            pixmap = QPixmap()
-            stream >> pixmap
-            rotateangle=stream.readFloat()
-            px=self.createPixmapItem(pixmap, position, matrix)
-            px.setRotation(rotateangle)
-        elif type == "Line":
-            qLine = QLineF()
-            
-            boxName=stream.readQString(); 
-            strFromBox=stream.readQString();
-            strToBox=stream.readQString();
-            style = Qt.PenStyle(stream.readInt16())
-            rotateangle=stream.readFloat() 
-            
-             
-                     
-            self.readLines.append((boxName,strFromBox, strToBox,  position, self.scene, self, Qt.SolidLine, None, matrix, rotateangle))
-            #ln=LineItem( boxName,self.dicText[strFromBox], self.dicText[strToBox],  position, self.scene, self, font, matrix)
-            #self.dicLine[boxName]=ln;
-            #ln.setRotation(rotateangle)
+            pass
+        elif type == "Line": 
+            pass
 
 
-    def writeItemToStream(self, stream, item):
+    def writeItemToStream(self, item,):
         if isinstance(item, TextItem):
-            stream.writeQString("Text")
-            stream<<item.pos()<< item.transform()             
-            stream.writeQString(item.boxName)
-            stream.writeQString(item.toPlainText())
-            stream<< item.font()
-            stream.writeFloat(item.rotation())#add by yangrongdong        
+            data=item.toSaveJson()
+            self.dictItemJson[item.boxName]=data
         elif isinstance(item, LineItem):
-            stream.writeQString("Line")            
-            rect=item.boundingRect() 
-            stream<< item.pos() << item.transform()            
-            stream.writeQString(item.boxName) 
-            stream.writeQString(item.fromBox.boxName)
-            stream.writeQString(item.toBox.boxName)
-            stream.writeInt16(item.style)
-            stream.writeFloat(item.rotation())#add by Yong
+            data=item.toSaveJson()
+            self.dictItemJson[item.boxName]=data
 
 
 

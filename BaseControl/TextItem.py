@@ -1,4 +1,4 @@
-
+import json
 import functools
 import random
 import sys
@@ -115,9 +115,14 @@ class TextItemDlg(QDialog):
         QDialog.accept(self)
 
 
-class TextItem(QGraphicsTextItem):
+class TextItem(QGraphicsTextItem):    
     def __init__(self, boxName, text, position, scene,parentForm, 
                  font=QFont("Times", PointSize), matrix=QTransform()):
+        if isinstance(boxName, dict ):            
+            text=boxName["text"]
+            position= QPointF(boxName["position"][0], boxName["position"][1])
+            font= QFont(boxName["font"][0], boxName["font"][1])
+            boxName=boxName["boxName"]
         super(TextItem, self).__init__(text)
         self.setFlags(QGraphicsItem.ItemIsSelectable|
                       QGraphicsItem.ItemIsMovable)
@@ -132,6 +137,15 @@ class TextItem(QGraphicsTextItem):
         self.setSelected(True)
         global Dirty
         Dirty = True 
+        
+    def toSaveJson(self):
+        data={"type":"Text", "boxName":self.boxName, "text":self.toPlainText(),
+        "position":(self.x(), self.y()) ,   "font":( self.font().family(), self.font().pointSize()), 
+        "rotation":self.rotation()}
+        return data
+        #Json.dumps(data)
+        
+    
     @property
     def boxName(self):
         return self._boxName

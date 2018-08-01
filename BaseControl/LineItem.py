@@ -45,9 +45,9 @@ class LineItemDlg(QDialog):
         ToBoxLabel = QLabel("&ToBox:")
         ToBoxLabel.setBuddy(self.ToBox) 
         
-        self.lineName = QLineEdit()     
+        self.boxName = QLineEdit()     
         BoxNameLabel = QLabel("&LineName:")
-        BoxNameLabel.setBuddy(self.lineName)
+        BoxNameLabel.setBuddy(self.boxName)
         
         
         self.GuardName = QLineEdit()     
@@ -66,7 +66,7 @@ class LineItemDlg(QDialog):
         if self.item is not None:
             self.fromBox.currentText(self.item.fromBox.boxName) 
             self.toBox.currentText(self.item.toBox.boxName) 
-            self.lineName.setText(self.item.lineName)
+            self.boxName.setText(self.item.boxName)
 
         layout = QGridLayout()
         layout.addWidget(FromBoxLabel, 0, 0)
@@ -74,7 +74,7 @@ class LineItemDlg(QDialog):
         layout.addWidget(ToBoxLabel, 1, 0)
         layout.addWidget(self.ToBox, 1, 1, 1, 1) 
         layout.addWidget(self.buttonBox, 5, 0, 1, 6)    
-        layout.addWidget(self.lineName, 2, 1, 1, 2)
+        layout.addWidget(self.boxName, 2, 1, 1, 2)
         layout.addWidget(BoxNameLabel, 2, 0)
         layout.addWidget(self.GuardName, 3, 1, 1, 2)
         layout.addWidget(GuardLabel, 3, 0)
@@ -86,7 +86,7 @@ class LineItemDlg(QDialog):
         self.FromBox.editTextChanged.connect(self.updateUi)
         self.ToBox.currentIndexChanged.connect(self.updateUi)
         self.FromBox.currentIndexChanged.connect(self.updateUi)
-        self.lineName.textChanged.connect(self.updateUi)
+        self.boxName.textChanged.connect(self.updateUi)
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
 
@@ -101,24 +101,24 @@ class LineItemDlg(QDialog):
 
     def updateUi(self):
         self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(
-                bool(self.lineName.text()))
+                bool(self.boxName.text()))
 
 
     def accept(self):
         if self.item is None:
-            self.item = LineItem(self.lineName.text(), None,None, self.position, self.scene, self.parentForm) 
+            self.item = LineItem(self.boxName.text(), None,None, self.position, self.scene, self.parentForm) 
         self.item.fromBox=self.parentForm.dicText[self.FromBox.currentText()]
         self.item.toBox=self.parentForm.dicText[self.ToBox.currentText()]
-        self.item.lineName=self.lineName.text()
+        self.item.boxName=self.boxName.text()
         self.item.update()
-        self.parentForm.dicLine[self.item.lineName]=self.item
+        self.parentForm.dicLine[self.item.boxName]=self.item
         global Dirty
         Dirty = True
         QDialog.accept(self)
 
 
 class LineItem(QGraphicsLineItem):
-    def __init__(self, lineName,   fromBox,toBox,position, scene,parentForm,   style=Qt.SolidLine,
+    def __init__(self, boxName,   fromBox,toBox,position, scene,parentForm,   style=Qt.SolidLine,
                  rect=None, matrix=QTransform()):
         super(LineItem, self).__init__() 
         
@@ -126,7 +126,7 @@ class LineItem(QGraphicsLineItem):
                       QGraphicsItem.ItemIsMovable|
                       QGraphicsItem.ItemIsFocusable)
         self.style = style
-        self.lineName=lineName
+        self.boxName=boxName
         self._fromBox=None
         self._toBox=None
         if fromBox==None:
@@ -236,15 +236,21 @@ class LineItem(QGraphicsLineItem):
         self.line = QLineF(self.source, self.dest)
         self.line.setLength(self.line.length() - 5)      
     @property
-    def lineName(self):
-        return self._lineName
+    def boxName(self):
+        return self._boxName
 
-    @lineName.setter
-    def lineName(self, value):
+    @boxName.setter
+    def boxName(self, value):
         if not isinstance(value, str ):
             raise ValueError('boxName must be an string!')        
-        self._lineName = value
+        self._boxName = value
     
+    
+    def toSaveJson(self):
+        data={"type":"Line", "boxName":self.boxName, "strFromBox":self.fromBox.boxName,
+        "strToBox":self.toBox.boxName ,   "style":self.style , "rotation":self.rotation()}
+        return data 
+     
     @property
     def fromBox(self):
         return self._fromBox 
@@ -296,8 +302,8 @@ class LineItem(QGraphicsLineItem):
         ptextx=(self.line.x1()+self.line.x2())/2
         ptexty=(self.line.y1()+self.line.y2())/2
         ptexty-=5
-        ptextx-=len(self.lineName)*3
-        QPainter.drawText(QPointF(ptextx, ptexty),  self.lineName)
+        ptextx-=len(self.boxName)*3
+        QPainter.drawText(QPointF(ptextx, ptexty),  self.boxName)
         
         #Painter.drawText(QPointF(ptextx, ptexty+20), self.direction)
         # setBrush

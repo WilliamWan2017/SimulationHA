@@ -1,0 +1,1 @@
+{"12": {"type": "Line", "boxName": "12", "strFromBox": "1", "strToBox": "2", "style": 1, "rotation": 0.0}, "2": {"type": "Text", "boxName": "2", "text": "2", "position": [-73.0, -236.0], "font": ["MS Shell Dlg 2", 10], "rotation": 0.0}, "1": {"type": "Text", "boxName": "1", "text": "1", "position": [-273.0, -228.0], "font": ["MS Shell Dlg 2", 10], "rotation": 0.0}}
