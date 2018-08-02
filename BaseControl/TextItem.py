@@ -157,8 +157,14 @@ class TextItem(QGraphicsTextItem):
         self._boxName = value
       
     
-    def boundingRect(self) :     
-        return  QRectF(0,0,100,100 )  
+    def boundingRect(self) :  
+        height=super().boundingRect().height()
+        width=super().boundingRect().width()
+        if height<100:
+            height=100
+        if width<100:
+            width=100
+        return  QRectF(0,0,width, height )  
         
     def parentWidget(self):
         return self.scene().views()[0]
@@ -168,6 +174,15 @@ class TextItem(QGraphicsTextItem):
         if change != QGraphicsItem.ItemSelectedChange:
             global Dirty
             Dirty = True
+        '''
+        if change== QGraphicsItem.ItemPositionChange:
+            if (parentFormvars().has_key('dicLine') ):
+                if parentForm.dicLine!=None:
+                    lines=[ line for line in  self.dicLine.values() if ( line.fromBox.boxName== self.boxName or line.toBox.boxName==self.boxName)]
+                    for line in  lines:
+                        line.resetLine();                    
+                parentForm.scene.update()
+        '''
         return QGraphicsTextItem.itemChange(self, change, variant)
 
  

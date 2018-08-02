@@ -66,6 +66,7 @@ class MainForm(QDialog):
         self.printer.setPageSize(QPrinter.Letter)
 
         self.view = GraphicsView()
+ 
         self.scene = QGraphicsScene(self)
         self.scene.setSceneRect(0, 0, PageSize[0], PageSize[1])
      #   self.addBorders()
@@ -79,6 +80,7 @@ class MainForm(QDialog):
                 ("List &TextName", self.listTextName), 
                 ("&Open...", self.open),
                 ("&Save", self.save),
+                ("&RePaintLine", self.RePaintLine),
                 ("&Quit", self.accept), 
                 ("&SameX", self.SameX)
                 ):
@@ -116,6 +118,8 @@ class MainForm(QDialog):
         self.setWindowTitle("Page Designer")
         self.dicText= {}
         self.dicLine={}
+   
+         
     def addText(self):
         dialog = TextItemDlg(position=self.position(),
                              scene=self.scene, parent=self)
@@ -129,6 +133,11 @@ class MainForm(QDialog):
                              scene=self.scene, parent=self)
         dialog.exec_()
     
+    
+    def RePaintLine(self):
+        for line in  self.dicLine.values():
+            line.resetLine();
+        self.scene.update()
     def position(self):
         point = self.mapFromGlobal(QCursor.pos())
         if not self.view.geometry().contains(point):

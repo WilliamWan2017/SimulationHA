@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project HA2 -->
-<!-- Saved: 2018-07-27, 07:46:44 -->
+<!-- Saved: 2018-08-01, 12:37:48 -->
 <!-- Copyright (C) 2018 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -17,6 +17,7 @@
     <Source>BaseControl/TextItem.py</Source>
     <Source>BaseControl/__init__.py</Source>
     <Source>QGraphicsItem.py</Source>
+    <Source>QGraphicsSaveAsJson.py</Source>
     <Source>QGraphicsScene.py</Source>
     <Source>QGraphicsSelf.py</Source>
     <Source>Ui_mainwindow.py</Source>
