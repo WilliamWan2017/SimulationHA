@@ -5,6 +5,7 @@ import json
 import sys
 from BaseControl.TextItem import TextItem, TextItemDlg
 from BaseControl.LineItem import LineItem, LineItemDlg
+from BaseControl.Location import LocationItem, LocationItemDlg
 from PyQt5.QtCore import (QByteArray, QDataStream, QFile, QFileInfo,QLineF, QLine, 
                           QIODevice, QPoint, QPointF, QRectF, Qt)
 from PyQt5.QtWidgets import (QApplication, QDialog, QFrame, 
@@ -75,8 +76,9 @@ class MainForm(QDialog):
         self.wrapped = [] # Needed to keep wrappers alive
         buttonLayout = QVBoxLayout()
         for text, slot in (
-                ("Add &CodeBox", self.addText), 
-                ("Add &Line", self.addLine), 
+                ("Add &Location", self.addText), 
+                ("Add &Edge", self.addLine), 
+                ("Add &", self.addLine), 
                 ("List &TextName", self.listTextName), 
                 ("&Open...", self.open),
                 ("&Save", self.save),
@@ -121,7 +123,7 @@ class MainForm(QDialog):
    
          
     def addText(self):
-        dialog = TextItemDlg(position=self.position(),
+        dialog = LocationItemDlg(position=self.position(),
                              scene=self.scene, parent=self)
         dialog.exec_()   
     def listTextName(self):
