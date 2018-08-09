@@ -61,21 +61,19 @@ class LocationItemDlg(QDialog):
         isInitialLabel=QLabel("&IsInitail")
         isInitialLabel.setBuddy(self.isInitial)
         
-        self.guardEditor = QTextEdit()         
-        self.guardEditor.setAcceptRichText(True)
-        self.guardEditor.setTabChangesFocus(True)
+        self.guardEditor = QLineEdit()           
         guardEditorLabel = QLabel("&Text:")
         guardEditorLabel.setBuddy(self.guardEditor)
         
-        self.ShowEquationLabel=QLabel("")        
-        self.ShowEquationLabel.setTextFormat(Qt.RichText)
-        self.ShowEquationLabel.setFrameShape(QFrame.StyledPanel)
+        self.ShowEquationFig = Figure(figsize=(5, 1))        
+        self.ShowEquationLabel  = FigureCanvas(self.ShowEquationFig) 
+        
         ShowEquationLabelLabel = QLabel("&Format(Text):")
         ShowEquationLabelLabel.setBuddy(self.ShowEquationLabel)
         
-        self.fig = Figure(figsize=(5, 3))
+        self.guardFig = Figure(figsize=(5, 0.4))
         
-        self.ShowGuardLabel  = FigureCanvas(self.fig)
+        self.ShowGuardLabel  = FigureCanvas(self.guardFig)
     
         ShowGuardLabelLabel = QLabel("&Format(Guard):")
         ShowGuardLabelLabel.setBuddy(self.ShowGuardLabel)
@@ -159,8 +157,17 @@ class LocationItemDlg(QDialog):
     
     def apply(self):
         
-        formula = r'$x=\frac{3}{100}$'
-        self.fig.text(0.1,0.5,formula, fontsize=16)
+        #formula = #r'$x=\frac{3}{100}$'
+        iEditLine=self.editor.document().blockCount();
+        iHeight=1;
+        if (iEditLine>4):
+            iHeight=0.2*(iEditLine-4)+1;
+            self.ShowEquationFig.set_size_inches(5, iHeight)
+        for i in range(iEditLine):
+            strData=self.editor.document().findBlock(i).text();            
+            self.ShowEquationFig.text(0.1,iHeight-0.2*(i+1), strData, fontsize=16)
+        self.ShowEquationLabel.draw()
+        self.guardfig.text(0.1,0.3, self.guardEditor.text(), fontsize=16)
         self.ShowGuardLabel.draw()
          
   
