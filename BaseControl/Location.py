@@ -2,6 +2,9 @@ import json
 import functools
 import random
 import sys
+from matplotlib.backends.backend_qt5agg import (
+        FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
+from matplotlib.figure import Figure
 from PyQt5.QtCore import (QByteArray, QDataStream, QFile, QFileInfo,QLineF, QLine, 
                           QIODevice, QPoint, QPointF, QRectF, Qt)
 from PyQt5.QtWidgets import (QApplication, QDialog, QFrame, 
@@ -70,13 +73,14 @@ class LocationItemDlg(QDialog):
         ShowEquationLabelLabel = QLabel("&Format(Text):")
         ShowEquationLabelLabel.setBuddy(self.ShowEquationLabel)
         
+        self.fig = Figure(figsize=(5, 3))
         
-        
-        self.ShowGuardLabel=QLabel("")        
-        self.ShowGuardLabel.setTextFormat(Qt.RichText)
-        self.ShowGuardLabel.setFrameShape(QFrame.StyledPanel)
+        self.ShowGuardLabel  = FigureCanvas(self.fig)
+    
         ShowGuardLabelLabel = QLabel("&Format(Guard):")
         ShowGuardLabelLabel.setBuddy(self.ShowGuardLabel)
+        self.btnShowPic=QPushButton("reset")
+        self.btnShowPic.clicked.connect(self.apply)
         
       
         
@@ -100,14 +104,15 @@ class LocationItemDlg(QDialog):
         layout.addWidget(self.fontSpinBox, 2, 4, 1, 2)
         layout.addWidget(self.textBoxName, 3, 1, )
         layout.addWidget(BoxNameLabel, 3, 0)
-        
+        #   layout.addWidget(self.ShowGuardLabel) 
         layout.addWidget(ShowEquationLabelLabel, 4, 0)
         
         layout.addWidget(self.ShowEquationLabel, 5, 0, 3, 6)
         layout.addWidget(ShowGuardLabelLabel, 10, 0)
         
-        layout.addWidget(self.ShowGuardLabel, 10, 1, 1, 2)
+        layout.addWidget(self.btnShowPic, 10, 4)
         
+        layout.addWidget(self.ShowGuardLabel, 10, 1, 1, 2)
         layout.addWidget(self.buttonBox, 11, 0  )    
         fontSizeLabel.hide()
         self.fontComboBox.hide()
@@ -135,9 +140,7 @@ class LocationItemDlg(QDialog):
         self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(
                 bool(self.editor.toPlainText()))
 
-    def apply(self):
-        self.ShowGuardLabel.setText( self.guardEditor.toPlainText())
-        self.ShowEquationLabel.setText(self.Editor.toPlainText())
+ 
         
 
     def accept(self):
@@ -153,7 +156,67 @@ class LocationItemDlg(QDialog):
         global Dirty
         Dirty = True
         QDialog.accept(self)
+    
+    def apply(self):
+        
+        formula = r'$x=\frac{3}{100}$'
+        self.fig.text(0.1,0.5,formula, fontsize=16)
+        self.ShowGuardLabel.draw()
+         
+  
+    def apply21(self):
+        buttonReply = QMessageBox.question(self, 'PyQt5 message', "ss", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        
+        import matplotlib.pyplot as plt
+        params = {
+        'figure.figsize': [5, 0.4],
+        }
+        plt.rcParams.update(params)
+        formula = r'$x=\frac{3}{100}$'
 
+        fig = plt.figure()
+        fig.text(0.1,0.3,formula, fontsize=16)
+        plt.savefig('formula11.png') 
+        
+            
+        params = {
+        'figure.figsize': [2, 0.5],
+        }
+        plt.rcParams.update(params)
+        formula = r'$x=\frac{3}{100}$'
+
+        fig = plt.figure()
+        fig.text(0.1,0.5,formula, fontsize=16)
+        plt.savefig('formula22.png') 
+        params = {
+        'figure.figsize': [3, 0.6],
+        }
+        plt.rcParams.update(params)
+        formula = r'$x=\frac{3}{100}$'
+
+        fig = plt.figure()
+        fig.text(0.1,0.7,formula, fontsize=16)
+        plt.savefig('formula33.png') 
+        params = {
+        'figure.figsize': [4, 0.8],
+        }
+        plt.rcParams.update(params)
+        formula = r'$x=\frac{3}{100}$'
+
+        fig = plt.figure()
+        fig.text(0.1,0.9,formula, fontsize=16)
+        plt.savefig('formula44.png')  
+        
+        params = {
+        'figure.figsize': [5, 1],
+        }
+        plt.rcParams.update(params)
+        formula = r'$x=\frac{3}{100}$'
+
+        fig = plt.figure()
+        fig.text(0.1,0.1,formula, fontsize=16)
+        plt.savefig('formula55.png') 
+ 
 
 class LocationItem(QGraphicsTextItem):    
     def __init__(self, boxName, text, position, scene,parentForm, 

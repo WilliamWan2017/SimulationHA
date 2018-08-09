@@ -1,6 +1,9 @@
-
+from __future__ import  division 
+import matplotlib.pyplot as plt
+from matplotlib import colors as mcolors 
 import functools
 import random
+
 import json
 import sys
 from BaseControl.TextItem import TextItem, TextItemDlg
@@ -78,7 +81,7 @@ class MainForm(QDialog):
         for text, slot in (
                 ("Add &Location", self.addText), 
                 ("Add &Edge", self.addLine), 
-                ("Add &", self.addLine), 
+                ("Add Picture&", self.addPicture), 
                 ("List &TextName", self.listTextName), 
                 ("&Open...", self.open),
                 ("&Save", self.save),
@@ -130,9 +133,28 @@ class MainForm(QDialog):
           buttonReply = QMessageBox.question(self, 'PyQt5 message', str(self.dicText), QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
           buttonReply = QMessageBox.question(self, 'PyQt5 message', str(self.dicLine.keys()), QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
+
+    def addPicture(self):
+        fig, ax = plt.subplots(figsize=(8, 5))
+        X, Y = fig.get_dpi() * fig.get_size_inches()
+        h = Y 
+        i=2
+        if i==2: 
+            name='aa'
+            formula = r'$x=\frac{3}{100}$'
+            ax.text(0.5, 2.5, name+formula, fontsize=(h ),
+            horizontalalignment='left',
+            verticalalignment='center')
+
+        ax.set_xlim(1, X)
+        ax.set_ylim(1, Y)
+        ax.set_axis_off()
+
+        #fig.subplots_adjust(left=0, right=1,                    top=1, bottom=0,                    hspace=0, wspace=0)
+        plt.show()
     def addLine(self):
         dialog = LineItemDlg(position=self.position(),
-                             scene=self.scene, parent=self)
+                            scene=self.scene, parent=self)
         dialog.exec_()
     
     
