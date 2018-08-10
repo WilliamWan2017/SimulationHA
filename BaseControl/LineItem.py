@@ -327,6 +327,25 @@ class LineItem(QGraphicsLineItem):
         # 方法1
         QPainter.drawLine(self.line)
         QPainter.drawPolygon(p1, p2, p3)
+        
+        
+        QPainter.drawArc(10, 10, 50, 50, 0, 180*16)
+        
+        v = self.line.unitVector()
+        v.setLength(5)
+        v.translate(QPointF(10, 60))
+
+        n = v.normalVector()
+        n.setLength(n.length() * 0.5)
+        n2 = n.normalVector().normalVector()
+
+        p1 = v.p2()
+        p2 = n.p2()
+        p3 = n2.p2()
+
+        # 方法1
+        #QPainter.drawLine(self.line)
+        QPainter.drawPolygon(p1, p2, p3)
         self.scene.update()
 
         # 方法2
