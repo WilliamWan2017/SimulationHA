@@ -2,6 +2,7 @@
 import functools
 import random
 import sys
+
 from PyQt5.QtCore import (QByteArray, QDataStream, QFile, QFileInfo,QLineF, QLine, 
                           QIODevice, QPoint, QPointF, QRectF, Qt)
 from PyQt5.QtWidgets import (QApplication, QDialog, QFrame, 
@@ -50,14 +51,14 @@ class LineItemDlg(QDialog):
         BoxNameLabel.setBuddy(self.boxName)
         
         
-        self.GuardName = QLineEdit()     
+        self.txtGuard = QLineEdit()     
         GuardLabel = QLabel("&Guard:")
-        GuardLabel.setBuddy(self.GuardName)
+        GuardLabel.setBuddy(self.txtGuard)
         
         
-        self.ResetName = QLineEdit()     
+        self.txtReset = QLineEdit()     
         ResetLabel = QLabel("&Reset:")
-        ResetLabel.setBuddy(self.ResetName)
+        ResetLabel.setBuddy(self.txtReset)
         
         self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok|
                                           QDialogButtonBox.Cancel)
@@ -76,9 +77,9 @@ class LineItemDlg(QDialog):
         layout.addWidget(self.buttonBox, 5, 0, 1, 6)    
         layout.addWidget(self.boxName, 2, 1, 1, 2)
         layout.addWidget(BoxNameLabel, 2, 0)
-        layout.addWidget(self.GuardName, 3, 1, 1, 2)
+        layout.addWidget(self.txtGuard, 3, 1, 1, 2)
         layout.addWidget(GuardLabel, 3, 0)
-        layout.addWidget(self.ResetName, 4, 1, 1, 2)
+        layout.addWidget(self.txtReset, 4, 1, 1, 2)
         layout.addWidget(ResetLabel, 4, 0)
         
         self.setLayout(layout)  

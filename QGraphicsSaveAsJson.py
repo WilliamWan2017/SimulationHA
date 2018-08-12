@@ -9,6 +9,7 @@ import sys
 from BaseControl.TextItem import TextItem, TextItemDlg
 from BaseControl.LineItem import LineItem, LineItemDlg
 from BaseControl.Location import LocationItem, LocationItemDlg
+from BaseControl.Edge import EdgeItem, EdgeItemDlg
 from PyQt5.QtCore import (QByteArray, QDataStream, QFile, QFileInfo,QLineF, QLine, 
                           QIODevice, QPoint, QPointF, QRectF, Qt)
 from PyQt5.QtWidgets import (QApplication, QDialog, QFrame, 
@@ -19,6 +20,8 @@ from PyQt5.QtWidgets import (QApplication, QDialog, QFrame,
                              QStyle, QTextEdit, QVBoxLayout)
 from PyQt5.QtGui import QFont,QCursor,QFontMetrics,QTransform,QPainter,QPen,QPixmap,QBrush
 from PyQt5.QtPrintSupport import QPrinter,QPrintDialog
+from PyQt5.QtWidgets import QTableWidget, QAbstractItemView, QTableWidgetItem, QWidget, QHBoxLayout, \
+    QApplication
 
 MAC = True
 try:
@@ -79,8 +82,8 @@ class MainForm(QDialog):
         self.wrapped = [] # Needed to keep wrappers alive
         buttonLayout = QVBoxLayout()
         for text, slot in (
-                ("Add &Location", self.addText), 
-                ("Add &Edge", self.addLine), 
+                ("Add &Location", self.addLocation), 
+                ("Add &Edge", self.addEdge), 
                 ("Add Picture&", self.addPicture), 
                 ("List &TextName", self.listTextName), 
                 ("&Open...", self.open),
@@ -113,9 +116,17 @@ class MainForm(QDialog):
         buttonLayout.addStretch()
 
         layout = QHBoxLayout()
-        layout.addWidget(self.view, 1)
-        layout.addLayout(buttonLayout)
-        self.setLayout(layout)
+        layout.addWidget(self.view, 1,)
+        layout.addLayout(buttonLayout )
+        layoutMain=QVBoxLayout()
+        layoutMain.addLayout(layout)
+        
+        self.tableWidget = QTableWidget()
+        layoutMain.addWidget(self.tableWidget, 2) 
+        # setup table widget
+        self.tableWidget.setColumnCount(3)
+        self.tableWidget.setHorizontalHeaderLabels(['EdgeName', 'Guard', 'Reset'])
+        self.setLayout(layoutMain)
 
         fm = QFontMetrics(self.font())
         self.resize(self.scene.width() + fm.width(" Delete... ") + 50,
@@ -124,8 +135,25 @@ class MainForm(QDialog):
         self.dicText= {}
         self.dicLine={}
    
+    def addEdgeInTable(self, edgeItem):
+        row_index=self.tableWidget.rowCount()
+        self.tableWidget.insertRow(row_index)
+        row_index=row_index
+        self.tableWidget.setItem(row_index, 0, QTableWidgetItem( edgeItem.boxName, 0))
+        self.tableWidget.setItem(row_index, 1, QTableWidgetItem( edgeItem.guard, 0))
+        self.tableWidget.setItem(row_index, 2, QTableWidgetItem( edgeItem.reset, 0))
+    
+    def setEdgeInTable(self, edgeItem):        
+        rowCount=self.tableWidget.rowCount()
+        for row_index in range(rowCount):
+            if self.tableWidget.item(row_index, 0).text()==edgeItem.boxName: 
+                self.tableWidget.setItem(row_index, 1, QTableWidgetItem( edgeItem.guard, 0))
+                self.tableWidget.setItem(row_index, 2, QTableWidgetItem( edgeItem.reset, 0))
+                return
          
-    def addText(self):
+
+        
+    def addLocation(self):
         dialog = LocationItemDlg(position=self.position(),
                              scene=self.scene, parent=self)
         dialog.exec_()   
@@ -152,8 +180,8 @@ class MainForm(QDialog):
 
         #fig.subplots_adjust(left=0, right=1,                    top=1, bottom=0,                    hspace=0, wspace=0)
         plt.show()
-    def addLine(self):
-        dialog = LineItemDlg(position=self.position(),
+    def addEdge(self):
+        dialog = EdgeItemDlg(position=self.position(),
                             scene=self.scene, parent=self)
         dialog.exec_()
     
@@ -177,6 +205,7 @@ class MainForm(QDialog):
         return self.view.mapToScene(point)
     def open(self):
         self.offerSave()
+        self.tableWidget.clearContents()
         path = (QFileInfo(self.filename).path()
                 if self.filename else ".")
         fname,filetype = QFileDialog.getOpenFileName(self,
@@ -277,18 +306,38 @@ class MainForm(QDialog):
 
  
     def DrawLineFromRead(self):
+            #draw lines between diffenent Loaation
             for key, ln in self.dicItem.items():
-                if ln["type"] == "Line":    
-                    n=LineItem( ln["boxName"],self.dicText[ln["strFromBox"]],self.dicText[ln["strToBox"]], 
-                    None, self.scene, self, ln["style"])
-                    self.dicLine[ln["boxName"]]=n;
-                    n.setRotation(ln["rotation"])
+                if ln["type"] == "Edge":   
+                    str1=ln["strFromLocation"]
+                    str2=ln["strToLocation"]
+                    if not (str1 == str2):
+                        
+                        n=EdgeItem( ln["boxName"],self.dicText[ln["strFromLocation"]],self.dicText[ln["strToLocation"]], 
+                        ln["guard"], ln["reset"], self.scene, self, ln["style"])
+                        self.dicLine[ln["boxName"]]=n;
+                        n.setRotation(ln["rotation"])
+                        self.addEdgeInTable(n)
+            #draw lines in a Loaation self
+            for key, ln in self.dicItem.items():
+                if ln["type"] == "Edge":    
+                    if ln["strFromLocation"]==ln["strToLocation"]:
+                        n=EdgeItem( ln["boxName"],self.dicText[ln["strFromBox"]],self.dicText[ln["strToBox"]], 
+                        ln["guard"], ln["reset"], self.scene, self, ln["style"])
+                        self.dicLine[ln["boxName"]]=n;
+                        n.setRotation(ln["rotation"])
+                        self.addEdgeInTable(n)
     def readItemFrom(self, item): 
         if item["type"] == "Text": 
             tx=TextItem(item, '', '',  self.scene, self)
             self.dicText[tx.boxName]=tx;
             tx.setRotation(item["rotation"] )
-        elif type == "Box":
+        elif item["type"]  == "Location":
+    #        def __init__(self, boxName, equation, guard, position, isInitial, isNameAbove, scene,parentForm, style=Qt.SolidLine,
+    
+            tx=LocationItem(item, '', '','', '', '',   self.scene, self)
+            self.dicText[tx.boxName]=tx;
+            tx.setRotation(item["rotation"] )
             pass
         elif type == "Pixmap":
             pass
@@ -297,12 +346,12 @@ class MainForm(QDialog):
 
 
     def writeItemToStream(self, item,):
-        if isinstance(item, TextItem):
-            data=item.toSaveJson()
-            self.dictItemJson[item.boxName]=data
-        elif isinstance(item, LineItem):
-            data=item.toSaveJson()
-            self.dictItemJson[item.boxName]=data
+        #if isinstance(item, TextItem):
+        data=item.toSaveJson()
+        self.dictItemJson[item.boxName]=data
+        #elif isinstance(item, LineItem):
+        #   data=item.toSaveJson()
+        #   self.dictItemJson[item.boxName]=data
 
 
 
