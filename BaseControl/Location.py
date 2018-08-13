@@ -117,9 +117,11 @@ class LocationItemDlg(QDialog):
         self.updateUi()
 
     def delete(self):  
-        if self.item.boxName in self.parentForm.dicText:
-            self.parentForm.dicText.pop(self.item.boxName)
-        self.scene().removeItem(self.item)
+        self.parentForm.deleteText(self.item)
+        global Dirty
+        Dirty = True
+        QDialog.accept(self)
+    
     def updateUi(self):
         self.apply()
 

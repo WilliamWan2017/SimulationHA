@@ -9,7 +9,8 @@ import sys
 from BaseControl.TextItem import TextItem, TextItemDlg
 from BaseControl.LineItem import LineItem, LineItemDlg
 from BaseControl.Location import LocationItem, LocationItemDlg
-from BaseControl.Edge import EdgeItem, EdgeItemDlg
+from BaseControl.VariableItem import VariableItem, VariableItemDlg, CheckWidget
+from BaseControl.Edge import EdgeItem, EdgeItemDlg, ImgWidget
 from PyQt5.QtCore import (QByteArray, QDataStream, QFile, QFileInfo,QLineF, QLine, 
                           QIODevice, QPoint, QPointF, QRectF, Qt)
 from PyQt5.QtWidgets import (QApplication, QDialog, QFrame, 
@@ -30,7 +31,7 @@ except ImportError:
     MAC = False
 
 #PageSize = (595, 842) # A4 in points
-PageSize = (612, 792) # US Letter in points
+PageSize = (800, 800) # US Letter in points
 PointSize = 10
 
 MagicNumber = 0x70616765
@@ -84,7 +85,7 @@ class MainForm(QDialog):
         for text, slot in (
                 ("Add &Location", self.addLocation), 
                 ("Add &Edge", self.addEdge), 
-                ("Add Picture&", self.addPicture), 
+                ("Add &Variable", self.addVariable), 
                 ("List &TextName", self.listTextName), 
                 ("&Open...", self.open),
                 ("&Save", self.save),
@@ -118,15 +119,46 @@ class MainForm(QDialog):
         layout = QHBoxLayout()
         layout.addWidget(self.view, 1,)
         layout.addLayout(buttonLayout )
-        layoutMain=QVBoxLayout()
-        layoutMain.addLayout(layout)
         
-        self.tableWidget = QTableWidget()
-        layoutMain.addWidget(self.tableWidget, 2) 
+        layoutTable = QHBoxLayout()
+ 
+        
+        self.EdgeWidget = QTableWidget()
+        layoutTable.addWidget(self.EdgeWidget, 1) 
         # setup table widget
-        self.tableWidget.itemDoubleClicked.connect(self.tableWidgetDoubleClicked)
-        self.tableWidget.setColumnCount(3)
-        self.tableWidget.setHorizontalHeaderLabels(['EdgeName', 'Guard', 'Reset'])
+        self.EdgeWidget.itemDoubleClicked.connect(self.EdgeWidgetDoubleClicked)
+        self.EdgeWidget.setColumnCount(3)
+        self.EdgeWidget.setHorizontalHeaderLabels(['EdgeName', 'Guard', 'Reset'])
+        self.EdgeWidget.setColumnWidth(0, 40)
+        self.EdgeWidget.setColumnWidth(1,200)
+        self.EdgeWidget.setColumnWidth(2, 200)
+        
+        self.EdgeWidget.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.EdgeWidget.setSelectionBehavior(QAbstractItemView.SelectItems)        
+        self.EdgeWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        
+        self.VariablesWidget = QTableWidget()
+        layoutTable.addWidget(self.VariablesWidget, 1) 
+        # setup table widget
+        self.VariablesWidget.itemDoubleClicked.connect(self.VariablesWidgetDoubleClicked)
+        self.VariablesWidget.setColumnCount(4)
+        self.VariablesWidget.setHorizontalHeaderLabels(['VariableN','Variable', 'Input', 'Output'])
+         
+        #self.VariablesWidget.hideColumn(0)
+        self.VariablesWidget.setColumnWidth(0, 100)        
+        self.VariablesWidget.setColumnWidth(1, 100)
+        self.VariablesWidget.setColumnWidth(2, 20)
+        self.VariablesWidget.setColumnWidth(3, 20)
+        self.VariablesWidget.setSelectionMode(QAbstractItemView.SingleSelection)
+        #self.VariablesWidget.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.VariablesWidget.setSelectionBehavior(QAbstractItemView.SelectItems)
+        self.VariablesWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
+       
+        layoutMain=QVBoxLayout()
+        layoutMain.addLayout(layout)   
+        layoutMain.addLayout(layoutTable)  
+        layoutMain.setStretchFactor(layout, 8)
+        layoutMain.setStretchFactor(layoutTable, 1)
         self.setLayout(layoutMain)
 
         fm = QFontMetrics(self.font())
@@ -135,25 +167,77 @@ class MainForm(QDialog):
         self.setWindowTitle("Page Designer")
         self.dicText= {}
         self.dicLine={}
-    def tableWidgetDoubleClicked(self, item):
-        if item.text() in self.dicLine:
-            dialog = EdgeItemDlg(self.dicLine[item.text()], None,self.scene, self )
-            dialog.exec_() 
+        self.dicVariable={}
         
-    def addEdgeInTable(self, edgeItem):
-        row_index=self.tableWidget.rowCount()
-        self.tableWidget.insertRow(row_index)
+        
+    def EdgeWidgetDoubleClicked(self, item):
+        selectItemText= self.EdgeWidget.item(item.row(), 0).text()
+        if selectItemText in self.dicLine:
+            dialog = EdgeItemDlg(self.dicLine[selectItemText],   None,self.scene, self )
+            dialog.exec_() 
+            
+            
+    def VariablesWidgetDoubleClicked(self, item):
+        selectItemText= self.VariablesWidget.item(item.row(), 0).text()
+        if selectItemText in self.dicVariable:
+            dialog = VariableItemDlg(self.dicVariable[selectItemText],  self )
+            dialog.exec_() 
+    
+    def deleteText (self, LocationItem):
+        if LocationItem.boxName in self.dicText:
+            self.dicText.pop(LocationItem.boxName)
+        self.scene.removeItem(LocationItem)        
+        self.scene.update()
+    def deleteLine(self, lineItem):
+        self.dicLine.pop(lineItem.boxName)
+        self.scene.removeItem(lineItem)        
+        self.scene.update()
+        rowCount=self.EdgeWidget.rowCount()
+        for row_index in range(rowCount):
+            if self.EdgeWidget.item(row_index, 0).text()==lineItem.boxName: 
+                self.EdgeWidget.removeRow(row_index)
+                return
+                
+    def deleteVariable(self, VariableItem):
+        self.dicVariable.pop(VariableItem.boxName) 
+        rowCount=self.VariablesWidget.rowCount()
+        for row_index in range(rowCount):
+            if self.VariablesWidget.item(row_index, 0).text()==VariableItem.boxName: 
+                self.VariablesWidget.removeRow(row_index)
+                return
+
+    def addVariableInTable(self, variableItem):
+        row_index=self.VariablesWidget.rowCount()
+        self.VariablesWidget.insertRow(row_index)
         row_index=row_index
-        self.tableWidget.setItem(row_index, 0, QTableWidgetItem( edgeItem.boxName, 0))
-        self.tableWidget.setItem(row_index, 1, QTableWidgetItem( edgeItem.guard, 0))
-        self.tableWidget.setItem(row_index, 2, QTableWidgetItem( edgeItem.reset, 0))
+        self.VariablesWidget.setItem(row_index, 0, QTableWidgetItem( variableItem.boxName, 0))
+        self.VariablesWidget.setCellWidget(row_index, 1, ImgWidget(  variableItem.getQPixmap4Variable(), self))
+        self.VariablesWidget.setCellWidget(row_index, 2,  CheckWidget(  variableItem.isInput, self)) 
+        self.VariablesWidget.setCellWidget(row_index, 3,  CheckWidget(  variableItem.isOutput, self))
+    
+    def setVariableInTable(self, variableItem):        
+        rowCount=self.VariablesWidget.rowCount()
+        for row_index in range(rowCount):
+            if self.VariablesWidget.item(row_index, 0).text()==variableItem.boxName:                  
+                self.VariablesWidget.setCellWidget(row_index, 1, ImgWidget(  variableItem.getQPixmap4Variable(), self))
+                self.VariablesWidget.setCellWidget(row_index, 2,  CheckWidget(  variableItem.isInput, self)) 
+                self.VariablesWidget.setCellWidget(row_index, 3,  CheckWidget(  variableItem.isOutput, self))
+    
+                return
+    def addEdgeInTable(self, edgeItem):
+        row_index=self.EdgeWidget.rowCount()
+        self.EdgeWidget.insertRow(row_index)
+        row_index=row_index
+        self.EdgeWidget.setItem(row_index, 0, QTableWidgetItem( edgeItem.boxName, 0))
+        self.EdgeWidget.setCellWidget(row_index, 1, ImgWidget(  edgeItem.getQPixmap4Guard(), self))
+        self.EdgeWidget.setCellWidget(row_index, 2,  ImgWidget(  edgeItem.getQPixmap4Reset(), self))
     
     def setEdgeInTable(self, edgeItem):        
-        rowCount=self.tableWidget.rowCount()
+        rowCount=self.EdgeWidget.rowCount()
         for row_index in range(rowCount):
-            if self.tableWidget.item(row_index, 0).text()==edgeItem.boxName: 
-                self.tableWidget.setItem(row_index, 1, QTableWidgetItem( edgeItem.guard, 0))
-                self.tableWidget.setItem(row_index, 2, QTableWidgetItem( edgeItem.reset, 0))
+            if self.EdgeWidget.item(row_index, 0).text()==edgeItem.boxName: 
+                self.EdgeWidget.setCellWidget(row_index, 1, ImgWidget(  edgeItem.getQPixmap4Guard(), self))
+                self.EdgeWidget.setCellWidget(row_index, 2,  ImgWidget(  edgeItem.getQPixmap4Reset(), self))
                 return
          
 
@@ -167,6 +251,10 @@ class MainForm(QDialog):
           buttonReply = QMessageBox.question(self, 'PyQt5 message', str(self.dicLine.keys()), QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
 
+    def addVariable(self):
+        dialog = VariableItemDlg( parent=self)
+        dialog.exec_()
+     
     def addPicture(self):
         fig, ax = plt.subplots(figsize=(8, 5))
         X, Y = fig.get_dpi() * fig.get_size_inches()
@@ -210,7 +298,7 @@ class MainForm(QDialog):
         return self.view.mapToScene(point)
     def open(self):
         self.offerSave()
-        self.tableWidget.clearContents()
+        self.EdgeWidget.clearContents()
         path = (QFileInfo(self.filename).path()
                 if self.filename else ".")
         fname,filetype = QFileDialog.getOpenFileName(self,

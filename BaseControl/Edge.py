@@ -15,9 +15,10 @@ from PyQt5.QtWidgets import (QApplication, QDialog, QFrame,
                              QGraphicsScene, QGraphicsTextItem, QGraphicsView, QGridLayout,QComboBox, 
                              QHBoxLayout, QLabel, QMenu, QMessageBox,QPushButton, QSpinBox,
                              QStyle, QTextEdit, QVBoxLayout, QLineEdit)
-from PyQt5.QtGui import QFont,QCursor,QFontMetrics,QTransform,QPainter,QPen,QPixmap,QBrush
+from PyQt5.QtGui import QFont,QCursor,QFontMetrics,QTransform,QPainter,QPen,QPixmap,QBrush, QImage
 from PyQt5.QtPrintSupport import QPrinter,QPrintDialog
 adjustY=10
+adjustX=15
 MAC = True
 try:
     from PyQt5.QtGui import qt_mac_set_native_menubar
@@ -31,7 +32,10 @@ class LocationList(QComboBox):
         self.addItems([key for key in parent.dicText.keys()])
         #self.item=parent.dicText.keys();
 
-
+class ImgWidget(QLabel):
+    def __init__(self, pic, parent=None):
+        super(ImgWidget, self).__init__(parent)       
+        self.setPixmap(pic)
 class EdgeItemDlg(QDialog):
     def __init__(self, item=None,  position=None,  scene=None, parent=None):
         super(QDialog, self).__init__(parent)
@@ -135,9 +139,11 @@ class EdgeItemDlg(QDialog):
 
 
     
-    def delete(self):        
-        self.parentForm.dicLine.pop(self.item.boxName)
-        self.scene.removeItem(self.item)
+    def delete(self):       
+        self.parentForm.deleteLine(self.item)
+        global Dirty
+        Dirty = True
+        QDialog.accept(self)
     def updateUi(self):
         self.buttonLocation.button(QDialogButtonBox.Ok).setEnabled(
                 bool(self.LocationName.text()))
@@ -158,11 +164,11 @@ class EdgeItemDlg(QDialog):
             self.parentForm.addEdgeInTable(self.item)
         self.item.fromLocation=self.parentForm.dicText[self.fromLocation.currentText()]
         self.item.toLocation=self.parentForm.dicText[self.toLocation .currentText()]
-        self.item.LocationName=self.LocationName.text()
+        self.item.boxName=self.LocationName.text()
         self.item.guard=self.txtGuard.text()
         self.item.reset=self.txtReset.text()
         self.item.update()
-        self.parentForm.dicLine[self.item.LocationName]=self.item
+        self.parentForm.dicLine[self.item.boxName]=self.item
         self.parentForm.setEdgeInTable(self.item)
         global Dirty
         Dirty = True
@@ -256,12 +262,12 @@ class EdgeItem(QGraphicsLineItem):
             self.arcTextx=self.arcx1+40
             self.arcTexty=self.arcy1 
         elif "right" not in haveEdges:
-            self.arcx1=self.fromLocation.x()+self.fromLocation.rect.width()/2 #-30
+            self.arcx1=self.fromLocation.x()+self.fromLocation.rect.width()/2-25-adjustX #-30
             self.arcy1=self.fromLocation.y()# -50#+self.fromLocation.rect.height*0.3 
-            self.minAngle=90 
-            x1=self.arcx1+7
+            self.minAngle=270 
+            x1=self.arcx1+7+25+adjustX
             y1=self.arcy1+80
-            x2=self.arcx1
+            x2=self.arcx1+25+adjustX
             y2=self.arcy1+80            
             self.arcTextx=self.arcx1
             self.arcTexty=self.arcy1+40
@@ -271,7 +277,30 @@ class EdgeItem(QGraphicsLineItem):
         self.line.setLength(self.line.length() - 5)      
 #if 'time' not in listOfStrings :
   #  print("Yes, 'time' NOT found in List : " , listOfStrings)
+    
+    def getQPixmap4Guard(self):
+        guardFig = Figure(figsize=(2.5, 0.4))        
+        canvas  = FigureCanvas(guardFig)   
+        strData=self.guard            
+        guardFig.text(0.1,0.3,  strData, fontsize=10)       
+        canvas.draw()
+        size = canvas.size()
+        width, height = size.width(), size.height()
+        im = QImage(canvas.buffer_rgba(), width, height, QImage.Format_ARGB32)
+        return QPixmap(im)
         
+    def getQPixmap4Reset(self):
+        guardFig = Figure(figsize=(2.5, 0.4))        
+        canvas  = FigureCanvas(guardFig)   
+        strData=self.reset            
+        guardFig.text(0.1,0.3,  strData, fontsize=10)       
+        canvas.draw()
+        size = canvas.size()
+        width, height = size.width(), size.height()
+        im = QImage(canvas.buffer_rgba(), width, height, QImage.Format_ARGB32)
+        return QPixmap(im)
+        
+    
     def resetLine(self):
         if self.fromLocation==None and  self.toLocation==None:
             return 
@@ -453,7 +482,7 @@ class EdgeItem(QGraphicsLineItem):
     def paint(self, QPainter, QStyleOptionGraphicsItem, QWidget_widget=None):
         # setPen
         pen = QPen()
-        pen.setWidth(1)
+        pen.setWidth(2)
         pen.setJoinStyle(Qt.MiterJoin) #让箭头变尖
         QPainter.setPen(pen)
 
