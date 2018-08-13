@@ -70,9 +70,10 @@ class LocationItemDlg(QDialog):
     
         lblCanvGuard = QLabel("&Format(Guard):")
         lblCanvGuard.setBuddy(self.canvGuard)
-         
+        btnDelete=QPushButton("Delete Location")
+        btnDelete.clicked.connect(self.delete)
         
-        self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Reset|
+        self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok|
                                           QDialogButtonBox.Cancel)
         #self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
 
@@ -99,7 +100,8 @@ class LocationItemDlg(QDialog):
         layout.addWidget(self.canvEquation, 6, 0, 3, 6)
         layout.addWidget(lblCanvGuard, 10, 0)        
         layout.addWidget(self.canvGuard, 10,1, 1, 5)  
-        layout.addWidget(self.buttonBox, 11, 0, 1, 6)    
+        layout.addWidget(self.buttonBox, 11, 0, 1, 5)    
+        layout.addWidget(btnDelete, 11, 5)
         self.setLayout(layout)
 
  
@@ -108,13 +110,16 @@ class LocationItemDlg(QDialog):
          
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject) 
-        self.buttonBox.button(QDialogButtonBox.Reset).clicked.connect(self.apply)
+        #self.buttonBox.button(QDialogButtonBox.Reset).clicked.connect(self.apply)
 
         self.setWindowTitle("{0} Location Item".format(
                 "Add" if self.item is None else "Edit"))
         self.updateUi()
 
-
+    def delete(self):  
+        if self.item.boxName in self.parentForm.dicText:
+            self.parentForm.dicText.pop(self.item.boxName)
+        self.scene().removeItem(self.item)
     def updateUi(self):
         self.apply()
 

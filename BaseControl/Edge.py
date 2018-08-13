@@ -40,15 +40,15 @@ class EdgeItemDlg(QDialog):
         self.position = position
         self.scene = scene
         
-        self.FromLocation=LocationList(self.parentForm)  
-        FromLocationLabel = QLabel("&FromLocation:")
-        FromLocationLabel.setBuddy(self.FromLocation) 
+        self.fromLocation=LocationList(self.parentForm)  
+        fromLocationLabel = QLabel("&fromLocation:")
+        fromLocationLabel.setBuddy(self.fromLocation) 
         
         
         
-        self.ToLocation=LocationList(self.parentForm)  
+        self.toLocation =LocationList(self.parentForm)  
         ToLocationLabel = QLabel("&ToLocation:")
-        ToLocationLabel.setBuddy(self.ToLocation) 
+        ToLocationLabel.setBuddy(self.toLocation ) 
         
         self.LocationName = QLineEdit()     
         LocationNameLabel = QLabel("&EdgeName:")
@@ -81,19 +81,21 @@ class EdgeItemDlg(QDialog):
         self.buttonLocation = QDialogButtonBox(QDialogButtonBox.Ok|
                                           QDialogButtonBox.Cancel)
         self.buttonLocation.button(QDialogButtonBox.Ok).setEnabled(False)
-
+        btnDelete=QPushButton("Delete Edge")
+        btnDelete.clicked.connect(self.delete)
+      
         if self.item is not None:
-            self.fromLocation.currentText(self.item.fromLocation.boxName) 
-            self.toLocation.currentText(self.item.toLocation.boxName) 
+            self.fromLocation.setEditText (self.item.fromLocation.boxName) 
+            self.toLocation.setEditText (self.item.toLocation.boxName) 
             self.LocationName.setText(self.item.boxName)
-            self.txtGuard.text(self.item.guard)
-            self.txtReset.text(self.item.reset)
+            self.txtGuard.setText(self.item.guard)
+            self.txtReset.setText(self.item.reset)
 
         layout = QGridLayout()
-        layout.addWidget(FromLocationLabel, 0, 0)
-        layout.addWidget(self.FromLocation, 0, 1, 1, 1)
+        layout.addWidget(fromLocationLabel, 0, 0)
+        layout.addWidget(self.fromLocation, 0, 1, 1, 1)
         layout.addWidget(ToLocationLabel, 1, 0)
-        layout.addWidget(self.ToLocation, 1, 1, 1, 1) 
+        layout.addWidget(self.toLocation , 1, 1, 1, 1) 
         layout.addWidget(self.LocationName, 2, 1, 1, 2)
         layout.addWidget(LocationNameLabel, 2, 0)
         layout.addWidget(self.txtGuard, 3, 1, 1, 2)
@@ -108,14 +110,15 @@ class EdgeItemDlg(QDialog):
         layout.addWidget(lblCanvReset, 6, 0)     
         
         
-        layout.addWidget(self.buttonLocation, 7, 0, 1, 6)    
+        layout.addWidget(self.buttonLocation, 7, 0, 1, 5)    
+        layout.addWidget(btnDelete, 7, 5)    
         
         
         self.setLayout(layout)  
-        self.ToLocation.editTextChanged.connect(self.updateUi)
-        self.FromLocation.editTextChanged.connect(self.updateUi)
-        self.ToLocation.currentIndexChanged.connect(self.updateUi)
-        self.FromLocation.currentIndexChanged.connect(self.updateUi)
+        self.toLocation .editTextChanged.connect(self.updateUi)
+        self.fromLocation.editTextChanged.connect(self.updateUi)
+        self.toLocation .currentIndexChanged.connect(self.updateUi)
+        self.fromLocation.currentIndexChanged.connect(self.updateUi)
         self.LocationName.textChanged.connect(self.updateUi)
         self.txtGuard.textChanged.connect(self.updateUi)
         self.txtReset.textChanged.connect(self.updateUi)
@@ -131,6 +134,10 @@ class EdgeItemDlg(QDialog):
         self.updateUi()
 
 
+    
+    def delete(self):        
+        self.parentForm.dicLine.pop(self.item.boxName)
+        self.scene.removeItem(self.item)
     def updateUi(self):
         self.buttonLocation.button(QDialogButtonBox.Ok).setEnabled(
                 bool(self.LocationName.text()))
@@ -149,8 +156,8 @@ class EdgeItemDlg(QDialog):
         if self.item is None:
             self.item = EdgeItem(self.LocationName.text(), None,None, "","",  self.scene, self.parentForm)  
             self.parentForm.addEdgeInTable(self.item)
-        self.item.fromLocation=self.parentForm.dicText[self.FromLocation.currentText()]
-        self.item.toLocation=self.parentForm.dicText[self.ToLocation.currentText()]
+        self.item.fromLocation=self.parentForm.dicText[self.fromLocation.currentText()]
+        self.item.toLocation=self.parentForm.dicText[self.toLocation .currentText()]
         self.item.LocationName=self.LocationName.text()
         self.item.guard=self.txtGuard.text()
         self.item.reset=self.txtReset.text()
@@ -203,51 +210,61 @@ class EdgeItem(QGraphicsLineItem):
         scene.clearSelection()
         scene.addItem(self)
         self.setSelected(True)
-        self.setFocus()        
+        self.setFocus()             
         global Dirty
         Dirty = True 
     def drawLine2Self(self):
         haveEdges=[strDirection   for strDirection in self.fromLocation.edges.values()]
-        self.arcx1=self.fromLocation.x()-30
-        self.arcy1=self.fromLocation.y() +self.fromLocation.rect.height()*0.3-30
-        self.minAngle=0
-        self.maxAngle=180 
-        if "top" not in haveEdges and self.FromLocation.isNameAbove:
-            self.arcx1=self.fromLocation.x()+self.fromLocation.rect.width()*0.3
-            self.arcy1=self.fromLocation.y() +self.fromLocation.rect.height()
-            x1=self.arcx1+30
-            y1=self.arcy1+6
-            x2=self.arcx1+30
+        self.arcx1=self.fromLocation.x()-self.fromLocation.rect.width()/2-40#-30
+        self.arcy1=self.fromLocation.y()# -50#+self.fromLocation.rect.height*0.3 
+        self.minAngle=90 
+        x1=self.arcx1+33
+        y1=self.arcy1+80
+        x2=self.arcx1+40
+        y2=self.arcy1+80            
+        self.arcTextx=self.arcx1
+        self.arcTexty=self.arcy1+40
+        self.spanAngle=180 
+        if "top" not in haveEdges and self.fromLocation.isNameAbove:
+            self.arcx1=self.fromLocation.x()-40
+            self.arcy1=self.fromLocation.y() -40-adjustY
+            x1=self.arcx1+80
+            y1=self.arcy1-7
+            x2=self.arcx1+80
             y2=self.arcy1
-            self.minAngle=0
-            self.maxAngle=180 
+            self.minAngle=0 
+            self.arcTextx=self.arcx1+40
+            self.arcTexty=self.arcy1 
         elif "left" not in haveEdges:
-            self.arcx1=self.fromLocation.x()-self.fromLocation.rect.width()/2#-30
-            self.arcy1=self.fromLocation.y() #+self.fromLocation.rect.height*0.3 
-            self.minAngle=270
-            self.maxAngle=90 
-            x1=self.arcx1+24
-            y1=self.arcy1+30
-            x2=self.arcx1+30
-            y2=self.arcy1+30
-        elif "bottom" not in haveEdges  and self.FromLocation.isNameAbove==false:
-            self.arcx1=self.fromLocation.x()+self.fromLocation.rect.width()*0.3
-            self.arcy1=self.fromLocation.y()
-            self.minAngle=180 
-            self. maxAngle=360            
-            x1=self.arcx1+30
-            y1=self.arcy1+6
-            x2=self.arcx1+30
-            y2=self.arcy1
+            self.arcx1=self.fromLocation.x()-self.fromLocation.rect.width()/2-40#-30
+            self.arcy1=self.fromLocation.y()# -50#+self.fromLocation.rect.height*0.3 
+            self.minAngle=90 
+            x1=self.arcx1+33
+            y1=self.arcy1+80
+            x2=self.arcx1+40
+            y2=self.arcy1+80            
+            self.arcTextx=self.arcx1
+            self.arcTexty=self.arcy1+40
+        elif "bottom" not in haveEdges  and self.fromLocation.isNameAbove==False:
+            self.arcx1=self.fromLocation.x()-40
+            self.arcy1=self.fromLocation.y()+self.fromLocation.rect.height()-adjustY
+            self.minAngle=180         
+            x1=self.arcx1+80
+            y1=self.arcy1+7
+            x2=self.arcx1+80
+            y2=self.arcy1            
+            self.arcTextx=self.arcx1+40
+            self.arcTexty=self.arcy1 
         elif "right" not in haveEdges:
-            self.arcx1=self.fromLocation.x()+self.fromLocation.rect.width()+30
-            self.arcy1=self.fromLocation.y() +self.fromLocation.rect.height()*0.3 
-            self.minAngle=90
-            self.maxAngle=270
-            x1=self.arcx1-24
-            y1=self.arcy1+30
-            x2=self.arcx1-30
-            y2=self.arcy1+30
+            self.arcx1=self.fromLocation.x()+self.fromLocation.rect.width()/2 #-30
+            self.arcy1=self.fromLocation.y()# -50#+self.fromLocation.rect.height*0.3 
+            self.minAngle=90 
+            x1=self.arcx1+7
+            y1=self.arcy1+80
+            x2=self.arcx1
+            y2=self.arcy1+80            
+            self.arcTextx=self.arcx1
+            self.arcTexty=self.arcy1+40
         self.source = QPointF(x1, y1)
         self.dest = QPointF(x2, y2)         
         self.line = QLineF(self.source, self.dest)
@@ -260,13 +277,13 @@ class EdgeItem(QGraphicsLineItem):
             return 
         
         if  self.fromLocation==None:            
-            self.toLocation.edges[self.boxName]="left"
+            #self.toLocation.edges[self.boxName]="left"
             x2= self.toLocation.x()
             y2= self.toLocation.y()+self.toLocation.rect.height()*0.3
             x1=x2-30
             y1=y2
         elif self.toLocation==None:
-            self.fromLocation.edges[self.boxName]="right"
+            #self.fromLocation.edges[self.boxName]="right"
             x1= self.fromLocation.x()+self.fromLocation.rect.width()
             y1= self.fromLocation.y()+self.fromLocation.rect.height()*0.3
             x2=x1+30
@@ -303,8 +320,8 @@ class EdgeItem(QGraphicsLineItem):
                 if (y_diff>0):
                     self.direction="y>"   
                     
-                    self.fromLocation.edges[self.boxName]="top"            
-                    self.toLocation.edges[self.boxName]="bottom"
+                    self.fromLocation.edges[self.boxName]="bottom"            
+                    self.toLocation.edges[self.boxName]="top"
                     x1= self.fromLocation.x()-self.fromLocation.rect.width()*0.25          
                     y1= self.fromLocation.y()+self.fromLocation.rect.height()-adjustY
                     x2= self.toLocation.x()-self.toLocation.rect.width()*0.25          
@@ -312,8 +329,8 @@ class EdgeItem(QGraphicsLineItem):
                 else:
                     self.direction="y<"      
        
-                    self.fromLocation.edges[self.boxName]="bottom"            
-                    self.toLocation.edges[self.boxName]="top"             
+                    self.fromLocation.edges[self.boxName]="top"            
+                    self.toLocation.edges[self.boxName]="bottom"             
                     x1= self.fromLocation.x()+self.fromLocation.rect.width()*0.25
                     y1= self.fromLocation.y()-adjustY
                     x2= self.toLocation.x()+self.toLocation.rect.width()*0.25       
@@ -322,7 +339,7 @@ class EdgeItem(QGraphicsLineItem):
                 if (x_diff>0) and (y_diff>0):
                     self.direction="xy>"         
                     self.fromLocation.edges[self.boxName]="right"            
-                    self.toLocation.edges[self.boxName]="bottom"         
+                    self.toLocation.edges[self.boxName]="top"         
                     x1=self.fromLocation.x()+self.fromLocation.rect.width()/2
                     y1=self.fromLocation.y()+self.fromLocation.rect.height()*0.87-adjustY
                     x2=self.toLocation.x()-self.toLocation.rect.width()*0.37
@@ -331,7 +348,7 @@ class EdgeItem(QGraphicsLineItem):
                     self.direction="xy<"            
              
                     self.fromLocation.edges[self.boxName]="left"            
-                    self.toLocation.edges[self.boxName]="top"                
+                    self.toLocation.edges[self.boxName]="bottom"                
                     x1=self.fromLocation.x()-self.fromLocation.rect.width()/2
                     y1=self.fromLocation.y()+self.fromLocation.rect.height()*0.13-adjustY
                     x2=self.toLocation.x()+self.toLocation.rect.width()*0.37
@@ -339,7 +356,7 @@ class EdgeItem(QGraphicsLineItem):
                 elif (x_diff>0) and (y_diff<0):
                     self.direction="x>y<"                   
                     
-                    self.fromLocation.edges[self.boxName]="bottom"            
+                    self.fromLocation.edges[self.boxName]="top"            
                     self.toLocation.edges[self.boxName]="left"          
                     x1=self.fromLocation.x()+self.fromLocation.rect.width()*0.37
                     y1=self.fromLocation.y()-adjustY
@@ -347,7 +364,7 @@ class EdgeItem(QGraphicsLineItem):
                     y2=self.toLocation.y()+self.toLocation.rect.height()*0.87-adjustY
                 else:
                     self.direction="x<y>"            
-                    self.fromLocation.edges[self.boxName]="top"            
+                    self.fromLocation.edges[self.boxName]="bottom"            
                     self.toLocation.edges[self.boxName]="right"             
                     x1=self.fromLocation.x() -self.fromLocation.rect.width()*0.37
                     y1=self.fromLocation.y()+self.fromLocation.rect.height()-adjustY
@@ -419,7 +436,7 @@ class EdgeItem(QGraphicsLineItem):
      
         
     def parentWidget(self):
-        return self.scene().views()[0]
+        return self.scene.views()[0]
 
 
     def itemChange(self, change, variant):
@@ -446,7 +463,6 @@ class EdgeItem(QGraphicsLineItem):
         ptexty=(self.line.y1()+self.line.y2())/2
         ptexty-=5
         ptextx-=len(self.boxName)*3
-        QPainter.drawText(QPointF(ptextx, ptexty),   self.boxName)
         
         #Painter.drawText(QPointF(ptextx, ptexty+20), self.direction)
         # setBrush
@@ -475,8 +491,21 @@ class EdgeItem(QGraphicsLineItem):
  
         if self.fromLocation is not None and self.toLocation is not  None:
             if self.fromLocation.boxName==self.toLocation.boxName:
-                QPainter.drawArc(self.arcx1, self.arcy1, 50, 50, self.minAngle*16, self.maxAngle*16)
-          
+                QPainter.drawArc(self.arcx1, self.arcy1, 80, 80, self.minAngle*16, self.spanAngle*16)                     
+                ptextx=self.arcTextx
+                ptexty=self.arcTexty
+                #QPainter.drawArc(self.arcx1, self.arcy1+100, 50, 50, 270*16, 89*16)      
+ 
+                #QPainter.drawArc(self.arcx1, self.arcy1+200, 50, 50, 0*16, 89*16)   
+ 
+                #QPainter.drawArc(self.arcx1, self.arcy1+300, 50, 50, 270*16, 180*16)   
+ 
+                #QPainter.drawArc(self.arcx1, self.arcy1+400, 50, 50, 270*16, 270*16)   
+                #QPainter.drawArc(self.arcx1, self.arcy1+500, 50, 50, 180*16, 89*16)                  
+               
+        QPainter.drawText(QPointF(ptextx, ptexty),   self.boxName)
+       
+        #QPainter.drawRect(self.arcx1, self.arcy1, 50, 50)
         self.scene.update()
 
         # 方法2

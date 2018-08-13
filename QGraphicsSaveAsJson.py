@@ -124,6 +124,7 @@ class MainForm(QDialog):
         self.tableWidget = QTableWidget()
         layoutMain.addWidget(self.tableWidget, 2) 
         # setup table widget
+        self.tableWidget.itemDoubleClicked.connect(self.tableWidgetDoubleClicked)
         self.tableWidget.setColumnCount(3)
         self.tableWidget.setHorizontalHeaderLabels(['EdgeName', 'Guard', 'Reset'])
         self.setLayout(layoutMain)
@@ -134,7 +135,11 @@ class MainForm(QDialog):
         self.setWindowTitle("Page Designer")
         self.dicText= {}
         self.dicLine={}
-   
+    def tableWidgetDoubleClicked(self, item):
+        if item.text() in self.dicLine:
+            dialog = EdgeItemDlg(self.dicLine[item.text()], None,self.scene, self )
+            dialog.exec_() 
+        
     def addEdgeInTable(self, edgeItem):
         row_index=self.tableWidget.rowCount()
         self.tableWidget.insertRow(row_index)
@@ -311,8 +316,7 @@ class MainForm(QDialog):
                 if ln["type"] == "Edge":   
                     str1=ln["strFromLocation"]
                     str2=ln["strToLocation"]
-                    if not (str1 == str2):
-                        
+                    if not (str1 == str2):                        
                         n=EdgeItem( ln["boxName"],self.dicText[ln["strFromLocation"]],self.dicText[ln["strToLocation"]], 
                         ln["guard"], ln["reset"], self.scene, self, ln["style"])
                         self.dicLine[ln["boxName"]]=n;
@@ -321,8 +325,10 @@ class MainForm(QDialog):
             #draw lines in a Loaation self
             for key, ln in self.dicItem.items():
                 if ln["type"] == "Edge":    
-                    if ln["strFromLocation"]==ln["strToLocation"]:
-                        n=EdgeItem( ln["boxName"],self.dicText[ln["strFromBox"]],self.dicText[ln["strToBox"]], 
+                    str1=ln["strFromLocation"]
+                    str2=ln["strToLocation"]
+                    if (str1 == str2):
+                        n=EdgeItem( ln["boxName"],self.dicText[ln["strFromLocation"]],self.dicText[ln["strToLocation"]], 
                         ln["guard"], ln["reset"], self.scene, self, ln["style"])
                         self.dicLine[ln["boxName"]]=n;
                         n.setRotation(ln["rotation"])
