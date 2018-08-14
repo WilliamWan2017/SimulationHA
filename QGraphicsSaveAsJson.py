@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import (QApplication, QDialog, QFrame,
                              QGraphicsItem, QGraphicsPixmapItem,QGraphicsLineItem,    
                              QGraphicsScene, QGraphicsTextItem, QGraphicsView, QGridLayout,
                              QHBoxLayout, QLabel, QMenu, QMessageBox,QPushButton, QSpinBox,
-                             QStyle, QTextEdit, QVBoxLayout)
+                             QStyle, QTextEdit, QVBoxLayout, QLineEdit, QComboBox)
 from PyQt5.QtGui import QFont,QCursor,QFontMetrics,QTransform,QPainter,QPen,QPixmap,QBrush
 from PyQt5.QtPrintSupport import QPrinter,QPrintDialog
 from PyQt5.QtWidgets import QTableWidget, QAbstractItemView, QTableWidgetItem, QWidget, QHBoxLayout, \
@@ -91,29 +91,46 @@ class MainForm(QDialog):
                 ("&Save", self.save),
                 ("&RePaintLine", self.RePaintLine),
                 ("&Quit", self.accept), 
-                ("&SameX", self.SameX)
+                ("&SameX", self.SameX), 
+                ("&New HA", self.newHA), 
+                ("QLineEdit", "Current HA Name")  , 
+                ("QComboBox", "HA Name List"), 
+                ("&Switch HA", self.switchHA)  ,        
+                ("&Delete HA", self.deleteHA), 
+                ("&Copy And New HA", self.copyHA)
                 ):
-            button = QPushButton(text)
-            if not MAC:
-                button.setFocusPolicy(Qt.NoFocus)
-            if slot is not None:
-                button.clicked.connect(slot)
-            if text == "&Align":
-                menu = QMenu(self)
-                for text, arg in (
+            if text  in ['QLineEdit', 'QComboBox']:
+                lbl=QLabel(slot) 
+                buttonLayout.addWidget(lbl)
+                if slot=='Current HA Name':
+                    self.txtHAName=QLineEdit()                    
+                    buttonLayout.addWidget( self.txtHAName)
+                if slot=='HA Name List':
+                    self.cmbHANameList=QComboBox()                    
+                    buttonLayout.addWidget( self.cmbHANameList)
+                
+            else:   
+                button = QPushButton(text)
+                if not MAC:
+                    button.setFocusPolicy(Qt.NoFocus)
+                if slot is not None:
+                    button.clicked.connect(slot)
+                if text == "&Align":
+                    menu = QMenu(self)
+                    for text, arg in (
                         ("Align &Left", Qt.AlignLeft),
                         ("Align &Right", Qt.AlignRight),
                         ("Align &Top", Qt.AlignTop),
                         ("Align &Bottom", Qt.AlignBottom)):
-                    wrapper = functools.partial(self.setAlignment, arg)
-                    self.wrapped.append(wrapper)
-                    menu.addAction(text, wrapper)
-                button.setMenu(menu)
-            if text == "Pri&nt...":
-                buttonLayout.addStretch(5)
-            if text == "&Quit":
-                buttonLayout.addStretch(1)
-            buttonLayout.addWidget(button)
+                        wrapper = functools.partial(self.setAlignment, arg)
+                        self.wrapped.append(wrapper)
+                        menu.addAction(text, wrapper)
+                    button.setMenu(menu)
+                if text == "Pri&nt...":
+                    buttonLayout.addStretch(5)
+                if text == "&Quit":
+                    buttonLayout.addStretch(1)
+                buttonLayout.addWidget(button)
         buttonLayout.addStretch()
 
         layout = QHBoxLayout()
@@ -168,8 +185,18 @@ class MainForm(QDialog):
         self.dicText= {}
         self.dicLine={}
         self.dicVariable={}
+        self.dicHA={}
         
+    def newHA(self):
+        pass
+    
+    def copyHA(self):
+        pass
         
+    def switchHA(self):
+        pass
+    def deleteHA(self):
+        pass
     def EdgeWidgetDoubleClicked(self, item):
         selectItemText= self.EdgeWidget.item(item.row(), 0).text()
         if selectItemText in self.dicLine:
@@ -212,17 +239,23 @@ class MainForm(QDialog):
         row_index=row_index
         self.VariablesWidget.setItem(row_index, 0, QTableWidgetItem( variableItem.boxName, 0))
         self.VariablesWidget.setCellWidget(row_index, 1, ImgWidget(  variableItem.getQPixmap4Variable(), self))
-        self.VariablesWidget.setCellWidget(row_index, 2,  CheckWidget(  variableItem.isInput, self)) 
-        self.VariablesWidget.setCellWidget(row_index, 3,  CheckWidget(  variableItem.isOutput, self))
+        self.VariablesWidget.setItem(row_index, 2, QTableWidgetItem( str(variableItem.isInput), 0))
+        self.VariablesWidget.setItem(row_index, 3, QTableWidgetItem( str(variableItem.isOutput), 0))
+        
+        
+        #self.VariablesWidget.setCellWidget(row_index, 2,  CheckWidget(  variableItem.isInput, self)) 
+        #self.VariablesWidget.setCellWidget(row_index, 3,  CheckWidget(  variableItem.isOutput, self))
     
     def setVariableInTable(self, variableItem):        
         rowCount=self.VariablesWidget.rowCount()
         for row_index in range(rowCount):
             if self.VariablesWidget.item(row_index, 0).text()==variableItem.boxName:                  
                 self.VariablesWidget.setCellWidget(row_index, 1, ImgWidget(  variableItem.getQPixmap4Variable(), self))
-                self.VariablesWidget.setCellWidget(row_index, 2,  CheckWidget(  variableItem.isInput, self)) 
-                self.VariablesWidget.setCellWidget(row_index, 3,  CheckWidget(  variableItem.isOutput, self))
-    
+                #self.VariablesWidget.setCellWidget(row_index, 2,  CheckWidget(  variableItem.isInput, self)) 
+                #self.VariablesWidget.setCellWidget(row_index, 3,  CheckWidget(  variableItem.isOutput, self))
+                self.VariablesWidget.setItem(row_index, 2, QTableWidgetItem( str(variableItem.isInput), 0))
+                self.VariablesWidget.setItem(row_index, 3, QTableWidgetItem( str(variableItem.isOutput), 0))
+       
                 return
     def addEdgeInTable(self, edgeItem):
         row_index=self.EdgeWidget.rowCount()
