@@ -235,9 +235,9 @@ class EdgeItem(QGraphicsLineItem):
             self.arcx1=self.fromLocation.x()-40
             self.arcy1=self.fromLocation.y() -40-adjustY
             x1=self.arcx1+80
-            y1=self.arcy1-7
+            y1=self.arcy1+40-7
             x2=self.arcx1+80
-            y2=self.arcy1
+            y2=self.arcy1+40
             self.minAngle=0 
             self.arcTextx=self.arcx1+40
             self.arcTexty=self.arcy1 
@@ -253,14 +253,14 @@ class EdgeItem(QGraphicsLineItem):
             self.arcTexty=self.arcy1+40
         elif "bottom" not in haveEdges  and self.fromLocation.isNameAbove==False:
             self.arcx1=self.fromLocation.x()-40
-            self.arcy1=self.fromLocation.y()+self.fromLocation.rect.height()-adjustY
+            self.arcy1=self.fromLocation.y()+self.fromLocation.rect.height()-adjustY-40
             self.minAngle=180         
             x1=self.arcx1+80
-            y1=self.arcy1+7
+            y1=self.arcy1+7+40
             x2=self.arcx1+80
-            y2=self.arcy1            
+            y2=self.arcy1+40            
             self.arcTextx=self.arcx1+40
-            self.arcTexty=self.arcy1 
+            self.arcTexty=self.arcy1 +80
         elif "right" not in haveEdges:
             self.arcx1=self.fromLocation.x()+self.fromLocation.rect.width()/2-25-adjustX #-30
             self.arcy1=self.fromLocation.y()# -50#+self.fromLocation.rect.height*0.3 
@@ -269,7 +269,7 @@ class EdgeItem(QGraphicsLineItem):
             y1=self.arcy1+80
             x2=self.arcx1+25+adjustX
             y2=self.arcy1+80            
-            self.arcTextx=self.arcx1
+            self.arcTextx=self.arcx1+80
             self.arcTexty=self.arcy1+40
         self.source = QPointF(x1, y1)
         self.dest = QPointF(x2, y2)         
