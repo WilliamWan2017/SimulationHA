@@ -31,7 +31,7 @@ except ImportError:
     MAC = False
 
 #PageSize = (595, 842) # A4 in points
-PageSize = (800, 800) # US Letter in points
+PageSize = (800, 700) # US Letter in points
 PointSize = 10
 
 MagicNumber = 0x70616765
@@ -106,12 +106,14 @@ class MainForm(QDialog):
                 if slot=='Current HA Name':
                     self.txtHAName=QLineEdit()       
                     self.txtHAName.setText("NoName")
-                    buttonLayout.addWidget( self.txtHAName)
+                    buttonLayout.addWidget( self.txtHAName)  
+                    #self.txtHAName.textChanged.connect(self.txtChanged)
                 if slot=='Current Model Name':
                     self.txtModelName=QLineEdit()               
                     self.txtModelName.setText("NoName")     
                     buttonLayout.addWidget( self.txtModelName)
-                    self.txtModelName.hide()
+                    self.txtModelName.hide()                    
+                    #self.txtModelName.textChanged.connect(self.txtChanged)
                     lbl.hide()
                 if slot=='HA Name List':
                     self.cmbHANameList=QComboBox()                    
@@ -145,11 +147,11 @@ class MainForm(QDialog):
         layout.addWidget(self.view, 1,)
         layout.addLayout(buttonLayout )
         
-        layoutTable = QHBoxLayout()
+        layoutTable = QVBoxLayout()#BoxLayout()
  
         
         self.EdgeWidget = QTableWidget()
-        layoutTable.addWidget(self.EdgeWidget, 1) 
+        layoutTable.addWidget(self.EdgeWidget) 
         # setup table widget
         self.EdgeWidget.itemDoubleClicked.connect(self.EdgeWidgetDoubleClicked)
         self.EdgeWidget.setColumnCount(3)
@@ -162,28 +164,29 @@ class MainForm(QDialog):
         self.EdgeWidget.setSelectionBehavior(QAbstractItemView.SelectItems)        
         self.EdgeWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
         
+        #self.EdgeWidget.resizeColumnsToContents() 
         self.VariablesWidget = QTableWidget()
-        layoutTable.addWidget(self.VariablesWidget, 1) 
+        layoutTable.addWidget(self.VariablesWidget) 
         # setup table widget
         self.VariablesWidget.itemDoubleClicked.connect(self.VariablesWidgetDoubleClicked)
         self.VariablesWidget.setColumnCount(4)
-        self.VariablesWidget.setHorizontalHeaderLabels(['VariableN','Variable', 'Input', 'Output'])
+        self.VariablesWidget.setHorizontalHeaderLabels(['Name','Variable', 'Input', 'Output'])
          
         #self.VariablesWidget.hideColumn(0)
         self.VariablesWidget.setColumnWidth(0, 50)        
         self.VariablesWidget.setColumnWidth(1, 200)
-        self.VariablesWidget.setColumnWidth(2, 40)
-        self.VariablesWidget.setColumnWidth(3, 40)
+        self.VariablesWidget.setColumnWidth(2, 140)
+        self.VariablesWidget.setColumnWidth(3,140)
         self.VariablesWidget.setSelectionMode(QAbstractItemView.SingleSelection)
         #self.VariablesWidget.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.VariablesWidget.setSelectionBehavior(QAbstractItemView.SelectItems)
         self.VariablesWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
-       
+        #self.VariablesWidget.resizeColumnsToContents() 
         layoutMain=QVBoxLayout()
         layoutMain.addLayout(layout)   
         layoutMain.addLayout(layoutTable)  
         layoutMain.setStretchFactor(layout, 8)
-        layoutMain.setStretchFactor(layoutTable, 1)
+        layoutMain.setStretchFactor(layoutTable, 2)
         self.setLayout(layoutMain)
 
         fm = QFontMetrics(self.font())
@@ -196,16 +199,103 @@ class MainForm(QDialog):
         self.dicHA={}
         self.dicModel={}
         self.currentProject={}
-    def newHA(self):
-        pass
+        self.currentHA=None
+    def txtChanged(self):
+        self.setDirty()
+        
+    def setDirty(self, newDirty=None):
+        if newDirty is None:
+            newDirty=True
+        global Dirty
+        Dirty=newDirty 
     
+    def newHA(self):
+        if self.txtHAName.text()=="NoName":
+            if (Dirty):
+                QMessageBox.question(self,
+                            "Please Input HA Name",
+                            "Fail to New HA,Please Change the HA Name from 'NoName' to a new name you want!",
+                            QMessageBox.Ok )  
+                return
+        self.offerSave()       
+        if (Dirty):
+            QMessageBox.question(self,
+                            "Please Save or Discard Current Editing",
+                            "Fail to new HA,Please Save or Discard current editing first!",
+                            QMessageBox.Ok )  
+            return 
+        self.clearCurrent()
+        self.txtHAName.setText("NoName")
+        self.currentHA=None 
     def copyHA(self):
-        pass
+        global Dirty
+        if self.txtHAName.text()=="NoName":
+            if (Dirty):
+                QMessageBox.question(self,
+                            "Please Input HA Name",
+                            "Fail to copy HA,Please Change the HA Name from 'NoName' to a new name you want!",
+                            QMessageBox.Ok )  
+                return        
+        self.offerSave()
+        if (Dirty):
+            QMessageBox.question(self,
+                            "Please Save or Discard Current Editing",
+                            "Fail to copy HA,Please Save or Discard current editing first!",
+                            QMessageBox.Ok )  
+            return
+        '''if (self.cmbHANameList.currentText()==""):
+            QMessageBox.question(self,
+                            "Please Select HA Name",
+                            "Fail to copy HA,Please select a HA Name in HA Name List!",
+                            QMessageBox.Ok )  
+            return
+        '''
+        self.currentHA= self.currentProject["Models"][self.txtModelName.text()]["HAs"][self.txtHAName.text()]        
+        self.clearCurrent()
+        self.DrawHA(self.currentHA)
+        self.txtHAName.setText("NoName")
+        self.currentHA=None
+        self.setDirty()
+       
         
     def switchHA(self):
-        pass
+        if self.txtHAName.text()=="NoName":
+            if (Dirty):
+                QMessageBox.question(self,
+                            "Please Input HA Name",
+                            "Fail to switch HA,Please Change the HA Name from 'NoName' to a new name you want!",
+                            QMessageBox.Ok )  
+                return    
+        NewHAName=self.cmbHANameList.currentText()
+        self.offerSave()
+        if (Dirty):
+            QMessageBox.question(self,
+                            "Please Save or Discard Current Editing",
+                            "Fail to switch HA,Please Save or Discard current editing first!",
+                            QMessageBox.Ok )  
+            return
+        if (self.cmbHANameList.currentText()==""):
+            QMessageBox.question(self,
+                            "Please Select HA Name",
+                            "Fail to switch HA,Please select a HA Name in HA Name List!",
+                            QMessageBox.Ok )  
+            return
+        self.clearCurrent()
+        self.cmbHANameList.setEditText(NewHAName )
+        self.txtHAName.setText(self.cmbHANameList.currentText())
+        self.DrawHA()
     def deleteHA(self):
-        pass
+        strHAName=self.txtHAName.text() 
+        if (strHAName in self.currentProject["Models"][self.txtModelName.text()]["HAs"].keys()):
+            self.currentProject["Models"][self.txtModelName.text()]["HAs"].pop(strHAName)
+        self.clearCurrent()  
+        if not self.filename:            
+            pass
+        else:
+            with open (self.filename, 'w') as fh:             
+                json.dump(self.currentProject, fh)
+        self.setDirty(False)
+        self.currentHA=None 
     def EdgeWidgetDoubleClicked(self, item):
         selectItemText= self.EdgeWidget.item(item.row(), 0).text()
         if selectItemText in self.dicLine:
@@ -250,7 +340,9 @@ class MainForm(QDialog):
         self.VariablesWidget.setCellWidget(row_index, 1, ImgWidget(  variableItem.getQPixmap4Variable(), self))
         self.VariablesWidget.setItem(row_index, 2, QTableWidgetItem( str(variableItem.isInput), 0))
         self.VariablesWidget.setItem(row_index, 3, QTableWidgetItem( str(variableItem.isOutput), 0))
-        
+        self.VariablesWidget.resizeRowToContents(row_index)
+        self.VariablesWidget.resizeRowsToContents()
+        self.VariablesWidget.resizeColumnsToContents()
         
         #self.VariablesWidget.setCellWidget(row_index, 2,  CheckWidget(  variableItem.isInput, self)) 
         #self.VariablesWidget.setCellWidget(row_index, 3,  CheckWidget(  variableItem.isOutput, self))
@@ -264,7 +356,9 @@ class MainForm(QDialog):
                 #self.VariablesWidget.setCellWidget(row_index, 3,  CheckWidget(  variableItem.isOutput, self))
                 self.VariablesWidget.setItem(row_index, 2, QTableWidgetItem( str(variableItem.isInput), 0))
                 self.VariablesWidget.setItem(row_index, 3, QTableWidgetItem( str(variableItem.isOutput), 0))
-       
+                self.VariablesWidget.resizeRowToContents(row_index)
+                self.VariablesWidget.resizeColumnsToContents()
+          #ui->tableWidget->resizeRowToContents(curRow)
                 return
     def addEdgeInTable(self, edgeItem):
         row_index=self.EdgeWidget.rowCount()
@@ -273,13 +367,17 @@ class MainForm(QDialog):
         self.EdgeWidget.setItem(row_index, 0, QTableWidgetItem( edgeItem.boxName, 0))
         self.EdgeWidget.setCellWidget(row_index, 1, ImgWidget(  edgeItem.getQPixmap4Guard(), self))
         self.EdgeWidget.setCellWidget(row_index, 2,  ImgWidget(  edgeItem.getQPixmap4Reset(), self))
-    
+        self.EdgeWidget.resizeRowToContents(row_index)        
+        self.EdgeWidget.resizeRowsToContents()
+        self.EdgeWidget.resizeColumnsToContents()
     def setEdgeInTable(self, edgeItem):        
         rowCount=self.EdgeWidget.rowCount()
         for row_index in range(rowCount):
             if self.EdgeWidget.item(row_index, 0).text()==edgeItem.boxName: 
                 self.EdgeWidget.setCellWidget(row_index, 1, ImgWidget(  edgeItem.getQPixmap4Guard(), self))
                 self.EdgeWidget.setCellWidget(row_index, 2,  ImgWidget(  edgeItem.getQPixmap4Reset(), self))
+                self.EdgeWidget.resizeRowToContents(row_index)
+                self.EdgeWidget.resizeColumnsToContents()
                 return
          
 
@@ -338,12 +436,38 @@ class MainForm(QDialog):
                 self.addOffset = 5
                 self.prevPoint = point
         return self.view.mapToScene(point)
-    def open(self):
-        self.offerSave()
+    def clearCurrent(self):
+        
         self.EdgeWidget.clearContents()
         self.EdgeWidget.setRowCount(0)        
         self.VariablesWidget.clearContents()
-        self.VariablesWidget.setRowCount(0)
+        self.VariablesWidget.setRowCount(0)   
+      
+        items = self.scene.items()
+        while items:
+            item = items.pop()
+            self.scene.removeItem(item)
+            del item
+            #self.addBorders()         dictItemJson={}
+        self.dicItem={}   
+        self.dicLine={}
+        self.dicText={}
+        self.dicVariable={}
+    def DrawHA(self, currentHA=None):
+        if (currentHA is None):
+            if not self.txtModelName.text() in self.currentProject["Models"].keys():
+                return
+            if not self.txtHAName.text() in  self.currentProject["Models"][self.txtModelName.text()]["HAs"].keys():
+                return
+            self.currentHA= self.currentProject["Models"][self.txtModelName.text()]["HAs"][self.txtHAName.text()]     
+        else:
+            self.currentHA=currentHA
+        for key,  item in self.currentHA["boxes"].items():
+            self.readItemFrom( item) 
+        self.DrawLine(self.currentHA["lines"])
+        self.DrawVariable(self.currentHA["variables"])
+    def open(self):
+        self.offerSave()
         path = (QFileInfo(self.filename).path()
                 if self.filename else ".")
         fname,filetype = QFileDialog.getOpenFileName(self,
@@ -352,28 +476,26 @@ class MainForm(QDialog):
         if not fname:
             return
         self.filename = fname
+        self.clearCurrent()
         fh = None
         #try:
         if 1==1:
        
-            items = self.scene.items()
-            while items:
-                item = items.pop()
-                self.scene.removeItem(item)
-                del item
-            #self.addBorders()         dictItemJson={}
-            self.dicItem={} 
-            self.EdgeWidget.clearContents()
-            self.VariablesWidget.clearContents()
             with open (self.filename, 'r') as fh:        
                 self.currentProject=json.load(fh) 
-            self.txtModelName.setText(next(iter(self.currentProject["Models"].keys())))
-            self.txtHAName.setText(next(iter(self.currentProject["Models"][self.txtModelName.text()]["HAs"].keys())))
-            currentHA= self.currentProject["Models"][self.txtModelName.text()]["HAs"][self.txtHAName.text()]
-            for key,  item in currentHA["boxes"].items():
-                self.readItemFrom( item) 
-            self.DrawLine(currentHA["lines"])
-            self.DrawVariable(currentHA["variables"])
+            
+            if ("NoName" in self.currentProject["Models"].keys()) or  len( self.currentProject["Models"])==0:
+                self.txtModelName.setText("NoName")
+            else:                           
+                self.txtModelName.setText(next(iter(self.currentProject["Models"].keys())))
+            if ("NoName" in self.currentProject["Models"][self.txtModelName.text()]["HAs"].keys())  or  len( self.currentProject["Models"][self.txtModelName.text()]["HAs"])==0:
+                self.txtHAName.setText("NoName")
+            else:            
+                self.txtHAName.setText(next(iter(self.currentProject["Models"][self.txtModelName.text()]["HAs"].keys()))) 
+            self.cmbHANameList.clear()
+            self.cmbHANameList.addItems([key for key in self.currentProject["Models"][self.txtModelName.text()]["HAs"].keys()])
+   
+            self.DrawHA( )
         '''except IOError as e:
             QMessageBox.warning(self, "Page Designer -- Open Error",
                     "Failed to open {0}: {1}".format(self.filename, e))
@@ -395,11 +517,15 @@ class MainForm(QDialog):
 
 
     def offerSave(self):
+        if self.currentHA is not None:
+            if not self.currentHA["name"]==self.txtHAName.text():
+                self.setDirty()
         if (Dirty and QMessageBox.question(self,
                             "Page Designer - Unsaved Changes",
                             "Save unsaved changes?",
                             QMessageBox.Yes|QMessageBox.No) == 
            QMessageBox.Yes):
+          
             self.save()
 
     def SameX(self):
@@ -428,7 +554,7 @@ class MainForm(QDialog):
                     "Page Designer - Save As", path,
                     "Page Designer Files (*.json)")
             if not fname:
-                return
+                return 
             self.filename = fname
         fh = None
         #try: 
@@ -443,23 +569,29 @@ class MainForm(QDialog):
                dicLineSave[item.boxName]=item.toSaveJson()
             for item in self.dicVariable.values():                
                dicVariableSave[item.boxName]=item.toSaveJson()
-            CurrentHA={}
-            CurrentHA["boxes"]=dicBoxSave
-            CurrentHA["lines"]=dicLineSave
-            CurrentHA["variables"]=dicVariableSave
-            CurrentHA["type"]="HA"
-            CurrentHA["name"]=self.txtHAName.text()
-            self.dicHA[self.txtHAName.text()]=CurrentHA
+            if self.currentHA is not None:
+                if not self.currentHA["name"]== self.txtHAName.text():
+                    self.currentProject["Models"][self.txtModelName.text()]["HAs"].pop(self.currentHA["name"])
+            HASave={}
+            HASave["boxes"]=dicBoxSave
+            HASave["lines"]=dicLineSave
+            HASave["variables"]=dicVariableSave
+            HASave["type"]="HA"
+            HASave["name"]=self.txtHAName.text()
+            self.dicHA[self.txtHAName.text()]=HASave
             CurrentModel={}
             CurrentModel["HAs"]=self.dicHA
             CurrentModel["type"]="Model"
             CurrentModel["name"]=self.txtModelName.text()
             self.dicModel[self.txtModelName.text()]=CurrentModel
-            
+            self.currentHA=HASave
             self.currentProject["Models"]=self.dicModel
-             
+            self.cmbHANameList.clear()
+            self.cmbHANameList.addItems([key for key in self.currentProject["Models"][self.txtModelName.text()]["HAs"].keys()])
+   
             with open (self.filename, 'w') as fh:             
                 json.dump(self.currentProject, fh)
+            
         #except IOError as e:
         #    QMessageBox.warning(self, "Page Designer -- Save Error",
         #            "Failed to save {0}: {1}".format(self.filename, e))
@@ -468,13 +600,14 @@ class MainForm(QDialog):
         #       fh.close()
         #    pass
         global Dirty
-        Dirty = False
+        Dirty = False 
 
     def DrawVariable(self, Variables):
             #draw lines between diffenent Loaation
             for key, ln in Variables.items():
                 if ln["type"] == "Variable":    
-                        v=VariableItem( ln["boxName"],ln["isInput"], ln["isOutput"], self)                     
+                        v=VariableItem( ln["boxName"],ln["isInput"], ln["isOutput"], self)    
+                        self.dicVariable[v.boxName]=v                
                         self.addVariableInTable(v)
     def DrawLine(self, Lines):
             #draw lines between diffenent Loaation

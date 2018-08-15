@@ -25,12 +25,7 @@ try:
 except ImportError:
     MAC = False
 
- 
-class LocationList(QComboBox):
-    def __init__(self, parent=None):
-        super(QComboBox, self).__init__(parent)
-        self.addItems([key for key in parent.dicText.keys()])
-        #self.item=parent.dicText.keys();
+   
 
 class ImgWidget(QLabel):
     def __init__(self, pic, parent=None):
@@ -44,13 +39,16 @@ class EdgeItemDlg(QDialog):
         self.position = position
         self.scene = scene
         
-        self.fromLocation=LocationList(self.parentForm)  
+        self.fromLocation=QComboBox()        
+        self.dicTextKeyList=[key for key in parent.dicText.keys()]
+        self.fromLocation.addItems(self.dicTextKeyList)
         fromLocationLabel = QLabel("&fromLocation:")
         fromLocationLabel.setBuddy(self.fromLocation) 
         
         
         
-        self.toLocation =LocationList(self.parentForm)  
+        self.toLocation =QComboBox()        
+        self.toLocation.addItems(self.dicTextKeyList)
         ToLocationLabel = QLabel("&ToLocation:")
         ToLocationLabel.setBuddy(self.toLocation ) 
         
@@ -68,7 +66,7 @@ class EdgeItemDlg(QDialog):
         ResetLabel = QLabel("&Reset:")
         ResetLabel.setBuddy(self.txtReset)  
         
-        self.figGuard = Figure(figsize=(5, 0.4))
+        self.figGuard = Figure(figsize=(2.5, 0.4))
         
         self.canvGuard  = FigureCanvas(self.figGuard)
     
@@ -76,7 +74,7 @@ class EdgeItemDlg(QDialog):
         lblCanvGuard.setBuddy(self.canvGuard)
         
              
-        self.figReset = Figure(figsize=(5, 0.4))        
+        self.figReset = Figure(figsize=(2.5, 0.4))        
         self.canvReset  = FigureCanvas(self.figReset) 
         
         lblCanvReset = QLabel("&Format(Reset):")
@@ -88,12 +86,7 @@ class EdgeItemDlg(QDialog):
         btnDelete=QPushButton("Delete Edge")
         btnDelete.clicked.connect(self.delete)
       
-        if self.item is not None:
-            self.fromLocation.setEditText (self.item.fromLocation.boxName) 
-            self.toLocation.setEditText (self.item.toLocation.boxName) 
-            self.LocationName.setText(self.item.boxName)
-            self.txtGuard.setText(self.item.guard)
-            self.txtReset.setText(self.item.reset)
+      
 
         layout = QGridLayout()
         layout.addWidget(fromLocationLabel, 0, 0)
@@ -119,6 +112,14 @@ class EdgeItemDlg(QDialog):
         
         
         self.setLayout(layout)  
+        if self.item is not None:
+            #self.fromLocation.setEditText (self.item.fromLocation.boxName) 
+            #self.toLocation.setEditText (self.item.toLocation.boxName) 
+            self.fromLocation.setCurrentIndex(self.dicTextKeyList.index(self.item.fromLocation.boxName))
+            self.toLocation.setCurrentIndex(self.dicTextKeyList.index(self.item.toLocation.boxName))
+            self.LocationName.setText(self.item.boxName)
+            self.txtGuard.setText(self.item.guard)
+            self.txtReset.setText(self.item.reset)
         self.toLocation .editTextChanged.connect(self.updateUi)
         self.fromLocation.editTextChanged.connect(self.updateUi)
         self.toLocation .currentIndexChanged.connect(self.updateUi)
@@ -141,9 +142,8 @@ class EdgeItemDlg(QDialog):
     
     def delete(self):       
         self.parentForm.deleteLine(self.item)
-        global Dirty
-        Dirty = True
-        QDialog.accept(self)
+                
+        self.parentForm.setDirty()
     def updateUi(self):
         self.buttonLocation.button(QDialogButtonBox.Ok).setEnabled(
                 bool(self.LocationName.text()))
@@ -153,10 +153,16 @@ class EdgeItemDlg(QDialog):
     def apply(self):       
         
         self.figGuard.clf()
-        self.figGuard.text(0.1,0.2, self.txtGuard.text(), fontsize=16)
+        try:
+            self.figGuard.text(0.1,0.2, self.txtGuard.text(), fontsize=16)
+        except:
+            pass
         self.canvGuard.draw()
         self.figReset.clf()
-        self.figReset.text(0.1,0.2, self.txtReset.text(), fontsize=16)
+        try:
+            self.figReset.text(0.1,0.2, self.txtReset.text(), fontsize=16)
+        except:
+            pass
         self.canvReset.draw()
     def accept(self):
         if self.item is None:
@@ -169,9 +175,8 @@ class EdgeItemDlg(QDialog):
         self.item.reset=self.txtReset.text()
         self.item.update()
         self.parentForm.dicLine[self.item.boxName]=self.item
-        self.parentForm.setEdgeInTable(self.item)
-        global Dirty
-        Dirty = True
+        self.parentForm.setEdgeInTable(self.item)        
+        self.parentForm.setDirty()
         QDialog.accept(self)
 
 class EdgeItem(QGraphicsLineItem):
@@ -279,10 +284,13 @@ class EdgeItem(QGraphicsLineItem):
   #  print("Yes, 'time' NOT found in List : " , listOfStrings)
     
     def getQPixmap4Guard(self):
-        guardFig = Figure(figsize=(2.5, 0.4))        
+        guardFig = Figure(figsize=(5, 0.4))        
         canvas  = FigureCanvas(guardFig)   
-        strData=self.guard            
-        guardFig.text(0.1,0.3,  strData, fontsize=10)       
+        strData=self.guard         
+        try:
+            guardFig.text(0.1,0.3,  strData, fontsize=10)       
+        except:
+            pass
         canvas.draw()
         size = canvas.size()
         width, height = size.width(), size.height()
@@ -290,10 +298,13 @@ class EdgeItem(QGraphicsLineItem):
         return QPixmap(im)
         
     def getQPixmap4Reset(self):
-        guardFig = Figure(figsize=(2.5, 0.4))        
+        guardFig = Figure(figsize=(5, 0.4))        
         canvas  = FigureCanvas(guardFig)   
         strData=self.reset            
-        guardFig.text(0.1,0.3,  strData, fontsize=10)       
+        try:
+            guardFig.text(0.1,0.3,  strData, fontsize=10)       
+        except:
+            pass
         canvas.draw()
         size = canvas.size()
         width, height = size.width(), size.height()
@@ -482,7 +493,7 @@ class EdgeItem(QGraphicsLineItem):
     def paint(self, QPainter, QStyleOptionGraphicsItem, QWidget_widget=None):
         # setPen
         pen = QPen()
-        pen.setWidth(2)
+        pen.setWidth(1)
         pen.setJoinStyle(Qt.MiterJoin) #让箭头变尖
         QPainter.setPen(pen)
 

@@ -99,9 +99,8 @@ class VariableItemDlg(QDialog):
 
     def delete(self):  
         self.parentForm.deleteVariable(self.item)
-        global Dirty
-        Dirty = True
-        QDialog.accept(self)
+          
+        self.parentForm.setDirty()
     
     def updateUi(self):
         self.apply()
@@ -156,7 +155,10 @@ class VariableItem(object):
         guardFig = Figure(figsize=(2.5, 0.4))        
         canvas  = FigureCanvas(guardFig)   
         strData=self.boxName            
-        guardFig.text(0.1,0.3,  strData, fontsize=10)       
+        try:
+            guardFig.text(0.1,0.3,  strData, fontsize=10)       
+        except:
+            pass
         canvas.draw()
         size = canvas.size()
         width, height = size.width(), size.height()

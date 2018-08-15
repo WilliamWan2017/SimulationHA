@@ -117,9 +117,8 @@ class LocationItemDlg(QDialog):
         self.updateUi()
 
     def delete(self):  
-        self.parentForm.deleteText(self.item)
-        global Dirty
-        Dirty = True
+        self.parentForm.deleteText(self.item)        
+        self.parentForm.setDirty()
         QDialog.accept(self)
     
     def updateUi(self):
@@ -143,9 +142,8 @@ class LocationItemDlg(QDialog):
         self.item.guard=self.txtGuard.text()
         self.item.isInitial=self.isInitial.isChecked()
         self.item.isNameAbove=self.isNameAbove.isChecked()
-        self.item.update()
-        global Dirty
-        Dirty = True
+        self.item.update() 
+        self.parentForm.setDirty()
         QDialog.accept(self)
     
     def apply(self):
@@ -187,6 +185,8 @@ class LocationItem(QGraphicsItem):
             boxName=boxName["boxName"]
         rect = QRectF(-10 * PointSize, -PointSize, 20 * PointSize,
                           2 * PointSize)
+        rect.setBottom(100)
+        rect.setRight(100)
         if size is not None:
             rect = QRectF(QPointF(-10 * PointSize, -PointSize),size)
         self.parentForm=parentForm
@@ -196,9 +196,7 @@ class LocationItem(QGraphicsItem):
         self.isNameAbove=isNameAbove
         self.boxName=boxName
         self.imageEquation=self.getQImage4Equation()
-        self.imageGuard=self.getQImage4Guard()
-        rect.setBottom(100)
-        rect.setRight(100)
+        self.imageGuard=self.getQImage4Guard()   
         self.rect = rect
         self.style = style
         self.setPos(position)
@@ -222,8 +220,11 @@ class LocationItem(QGraphicsItem):
         canvas  = FigureCanvas(guardFig)  
         
         for i in range(iEditLine):
-            strData=self.equation[i]            
-            guardFig.text(0.1,iHeight-0.2*(i+1), strData, fontsize=10)       
+            strData=self.equation[i]         
+            try:  
+                guardFig.text(0.1,iHeight-0.2*(i+1), strData, fontsize=10)       
+            except:
+                pass
         canvas.draw()
         size = canvas.size()
         width, height = size.width(), size.height()
@@ -233,8 +234,11 @@ class LocationItem(QGraphicsItem):
     def getQImage4Guard(self):
         guardFig = Figure(figsize=(2.5, 0.4))        
         canvas  = FigureCanvas(guardFig)   
-        strData=self.guard            
-        guardFig.text(0.1,0.3,  strData, fontsize=10)       
+        strData=self.guard      
+        try:
+            guardFig.text(0.1,0.3,  strData, fontsize=10)       
+        except:
+            pass
         canvas.draw()
         size = canvas.size()
         width, height = size.width(), size.height()
@@ -341,11 +345,11 @@ class LocationItem(QGraphicsItem):
         painter.setPen(pen)
         painter.drawRect(self.boundingRect())
         painter.drawImage(self.rect, self.imageEquation)
-        pointText=QPointF(self.rect.x(), self.rect.y()-50)
+        pointText=QPointF(self.rect.x(), self.rect.y()-40)
         rectGuard=QRectF(self.rect.x(), self.rect.y()-35, self.rect.width(), 30)
         if self.isNameAbove:            
             pointText=QPointF(self.rect.x(), self.rect.y()+self.rect.height()+50)
-            rectGuard=QRectF(self.rect.x(), self.rect.y() +self.rect.height()+15, self.rect.width(), 30)
+            rectGuard=QRectF(self.rect.x(), self.rect.y() +self.rect.height()+5, self.rect.width(), 30)
         painter.drawText(pointText,  self.boxName)
         #painter.drawText(self.rect.x(), self.rect.y()-30, "1-" +self.boxName)
         #painter.drawText(self.rect.x(), self.rect.y()-10, "2-" + self.boxName)
