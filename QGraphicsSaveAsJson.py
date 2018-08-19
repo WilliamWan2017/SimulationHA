@@ -295,7 +295,7 @@ class MainForm(QDialog):
             with open (self.filename, 'w') as fh:             
                 json.dump(self.currentProject, fh)
         self.setDirty(False)
-        self.currentHA=None 
+        self.DrawDefaultHA() 
     def EdgeWidgetDoubleClicked(self, item):
         selectItemText= self.EdgeWidget.item(item.row(), 0).text()
         if selectItemText in self.dicLine:
@@ -466,6 +466,18 @@ class MainForm(QDialog):
             self.readItemFrom( item) 
         self.DrawLine(self.currentHA["lines"])
         self.DrawVariable(self.currentHA["variables"])
+    def DrawDefaultHA(self):
+        if ("NoName" in self.currentProject["Models"].keys()) or  len( self.currentProject["Models"])==0:
+            self.txtModelName.setText("NoName")
+        else:                           
+            self.txtModelName.setText(next(iter(self.currentProject["Models"].keys())))
+        if ("NoName" in self.currentProject["Models"][self.txtModelName.text()]["HAs"].keys())  or  len( self.currentProject["Models"][self.txtModelName.text()]["HAs"])==0:
+            self.txtHAName.setText("NoName")
+        else:            
+            self.txtHAName.setText(next(iter(self.currentProject["Models"][self.txtModelName.text()]["HAs"].keys()))) 
+        self.cmbHANameList.clear()
+        self.cmbHANameList.addItems([key for key in self.currentProject["Models"][self.txtModelName.text()]["HAs"].keys()])   
+        self.DrawHA( )
     def open(self):
         self.offerSave()
         path = (QFileInfo(self.filename).path()
@@ -483,19 +495,8 @@ class MainForm(QDialog):
        
             with open (self.filename, 'r') as fh:        
                 self.currentProject=json.load(fh) 
-            
-            if ("NoName" in self.currentProject["Models"].keys()) or  len( self.currentProject["Models"])==0:
-                self.txtModelName.setText("NoName")
-            else:                           
-                self.txtModelName.setText(next(iter(self.currentProject["Models"].keys())))
-            if ("NoName" in self.currentProject["Models"][self.txtModelName.text()]["HAs"].keys())  or  len( self.currentProject["Models"][self.txtModelName.text()]["HAs"])==0:
-                self.txtHAName.setText("NoName")
-            else:            
-                self.txtHAName.setText(next(iter(self.currentProject["Models"][self.txtModelName.text()]["HAs"].keys()))) 
-            self.cmbHANameList.clear()
-            self.cmbHANameList.addItems([key for key in self.currentProject["Models"][self.txtModelName.text()]["HAs"].keys()])
-   
-            self.DrawHA( )
+            self.DrawDefaultHA()
+       
         '''except IOError as e:
             QMessageBox.warning(self, "Page Designer -- Open Error",
                     "Failed to open {0}: {1}".format(self.filename, e))
@@ -579,7 +580,8 @@ class MainForm(QDialog):
             HASave["type"]="HA"
             HASave["name"]=self.txtHAName.text()
             #self.dicHA[self.txtHAName.text()]=HASave
-            self.currentProject["Models"][self.txtModelName.text()]["HAs"][self.txtHAName.text()]=HASave
+            if (len(dicBoxSave)>0):
+                self.currentProject["Models"][self.txtModelName.text()]["HAs"][self.txtHAName.text()]=HASave            
             CurrentModel={}
             CurrentModel["HAs"]=self.dicHA
             CurrentModel["type"]="Model"
