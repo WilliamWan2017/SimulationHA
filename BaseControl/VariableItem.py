@@ -98,9 +98,9 @@ class VariableItemDlg(QDialog):
         self.updateUi()
 
     def delete(self):  
-        self.parentForm.deleteVariable(self.item)
-          
-        self.parentForm.setDirty()
+        self.parentForm.deleteVariable(self.item)          
+        self.parentForm.setDirty()        
+        QDialog.accept(self)
     
     def updateUi(self):
         self.apply()

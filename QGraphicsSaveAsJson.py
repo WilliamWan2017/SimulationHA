@@ -578,14 +578,15 @@ class MainForm(QDialog):
             HASave["variables"]=dicVariableSave
             HASave["type"]="HA"
             HASave["name"]=self.txtHAName.text()
-            self.dicHA[self.txtHAName.text()]=HASave
+            #self.dicHA[self.txtHAName.text()]=HASave
+            self.currentProject["Models"][self.txtModelName.text()]["HAs"][self.txtHAName.text()]=HASave
             CurrentModel={}
             CurrentModel["HAs"]=self.dicHA
             CurrentModel["type"]="Model"
             CurrentModel["name"]=self.txtModelName.text()
-            self.dicModel[self.txtModelName.text()]=CurrentModel
+            #self.dicModel[self.txtModelName.text()]=CurrentModel
             self.currentHA=HASave
-            self.currentProject["Models"]=self.dicModel
+            #self.currentProject["Models"]=self.dicModel
             self.cmbHANameList.clear()
             self.cmbHANameList.addItems([key for key in self.currentProject["Models"][self.txtModelName.text()]["HAs"].keys()])
    

@@ -141,9 +141,9 @@ class EdgeItemDlg(QDialog):
 
     
     def delete(self):       
-        self.parentForm.deleteLine(self.item)
-                
-        self.parentForm.setDirty()
+        self.parentForm.deleteLine(self.item)                
+        self.parentForm.setDirty()        
+        QDialog.accept(self)
     def updateUi(self):
         self.buttonLocation.button(QDialogButtonBox.Ok).setEnabled(
                 bool(self.LocationName.text()))
