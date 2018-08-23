@@ -54,6 +54,10 @@ class LocationItemDlg(QDialog):
         lblIsInitial=QLabel("&IsInitail")
         lblIsInitial.setBuddy(self.isInitial)
         
+        self.isEnd=QCheckBox()
+        lblIsEnd=QLabel("&isEnd")
+        lblIsEnd.setBuddy(self.isEnd)
+        
         self.txtGuard = QLineEdit()           
         lblGuard = QLabel("&Guard:")
         lblGuard.setBuddy(self.txtGuard)
@@ -76,11 +80,12 @@ class LocationItemDlg(QDialog):
         self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok|
                                           QDialogButtonBox.Cancel)
         #self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
-
+        self.isNameAbove.setChecked(True)
         if self.item is not None:
             self.ediEquation.setPlainText("\n".join(self.item.equation))
             self.txtLocationName.setText(self.item.boxName)
-            self.isInitial.setChecked(self.item.isInitial)
+            self.isInitial.setChecked(self.item.isInitial)            
+            self.isEnd.setChecked(self.item.isEnd)
             self.isNameAbove.setChecked(self.item.isNameAbove)
             self.txtGuard.setText(self.item.guard)
 
@@ -92,7 +97,9 @@ class LocationItemDlg(QDialog):
         layout.addWidget(lblIsNameAbove, 2, 3)
         layout.addWidget(self.isNameAbove, 2, 4, 1, 2)        
         layout.addWidget(lblIsInitial, 3, 0) 
-        layout.addWidget(self.isInitial, 3, 1 )
+        layout.addWidget(self.isInitial, 3, 1 )      
+        layout.addWidget(lblIsEnd, 3, 2) 
+        layout.addWidget(self.isEnd, 3, 3 )
         layout.addWidget(lblGuard, 4, 0)
         layout.addWidget(self.txtGuard,  4, 1, 1, 5)
         
@@ -129,18 +136,38 @@ class LocationItemDlg(QDialog):
 
     def accept(self):
         iEditLine=self.ediEquation.document().lineCount(); 
-        equation=[self.ediEquation.document().findBlockByLineNumber(i).text() for i in range(iEditLine)]          
+        equation=[self.ediEquation.document().findBlockByLineNumber(i).text() for i in range(iEditLine)]     
+        tmpLocationName=self.txtLocationName.text()     
+        if (tmpLocationName==""):
+            QMessageBox.question(self,
+                            "Please Input Location Name",
+                            "Fail to Accept,Please Input a Name for the Location!",
+                            QMessageBox.Ok )  
+            return;        
         if self.item is None:
-             self.item = LocationItem("",equation,self.txtGuard.text(), self.position, self.isInitial.isChecked(), self.isNameAbove.isChecked(), self.scene, self.parentForm)
+            if (tmpLocationName in parentFrom.dicText.keys()):
+                QMessageBox.question(self,
+                            "Location Name Exists",
+                            "Fail to Accept,Please Change a Name for the Location due to there is already a location named "+tmpLocationName +"!",
+                            QMessageBox.Ok )  
+                return
+            self.item = LocationItem("",equation,self.txtGuard.text(), self.position, self.isInitial.isChecked(), self.isEnd.isChecked(), self.isNameAbove.isChecked(), self.scene, self.parentForm)
         if (self.item.boxName==""):
             self.item.boxName=self.txtLocationName.text()
         else:
             if (self.item.boxName!=self.txtLocationName.text()):
+                if (tmpLocationName in parentFrom.dicText.keys()):
+                    QMessageBox.question(self,
+                            "Location Name Exists",
+                            "Fail to Accept,Please Change a Name for the Location due to there is already a location named "+tmpLocationName +"!",
+                            QMessageBox.Ok )  
+                    return
                 self.parentForm.dicText.pop(self.item.boxName)
         self.parentForm.dicText[self.item.boxName]=self.item
         self.item.equation=equation
         self.item.guard=self.txtGuard.text()
         self.item.isInitial=self.isInitial.isChecked()
+        self.item.isEnd=self.isEnd.isChecked()
         self.item.isNameAbove=self.isNameAbove.isChecked()
         self.item.update() 
         self.parentForm.setDirty()
@@ -160,7 +187,7 @@ class LocationItemDlg(QDialog):
             self.figEquation.text(0.1,iHeight-0.2*(i+1), strData, fontsize=10)
         self.canvEquation.draw()
         self.figGuard.clf()
-        self.figGuard.text(0.1,0.2, self.txtGuard.text(), fontsize=16)
+        self.figGuard.text(0.1,0.2, self.txtGuard.text(),family="Consolas",  fontsize=16)
         self.canvGuard.draw()
         
  
@@ -168,18 +195,22 @@ class LocationItemDlg(QDialog):
 
 
 class LocationItem(QGraphicsItem): 
-    def __init__(self, boxName, equation, guard, position, isInitial, isNameAbove, scene,parentForm,size=None, style=Qt.SolidLine,
-                  matrix=QTransform()):
+    def __init__(self, boxName, equation, guard, position, isInitial, isEnd, isNameAbove, scene,parentForm,size=None, style=Qt.SolidLine,
+                  matrix=QTransform()):  
         super(LocationItem, self).__init__()
         self.setFlags(QGraphicsItem.ItemIsSelectable|
                       QGraphicsItem.ItemIsMovable|
                       QGraphicsItem.ItemIsFocusable)
-
+       
         if isinstance(boxName, dict ):            
             equation=boxName["equation"]
             position= QPointF(boxName["position"][0], boxName["position"][1])
             guard=boxName["guard"]
-            isInitial=boxName["isInitial"]
+            isInitial=boxName["isInitial"]    
+            if "isEnd" in boxName.keys():
+                isEnd=boxName["isEnd"]
+            else:
+                isEnd=False
             isNameAbove=boxName["isNameAbove"]
             size=QSizeF(boxName["size"][0], boxName["size"][1]) 
             boxName=boxName["boxName"]
@@ -193,6 +224,7 @@ class LocationItem(QGraphicsItem):
         self.equation=equation
         self.guard=guard
         self.isInitial=isInitial
+        self.isEnd=isEnd
         self.isNameAbove=isNameAbove
         self.boxName=boxName
         self.imageEquation=self.getQImage4Equation()
@@ -207,9 +239,9 @@ class LocationItem(QGraphicsItem):
         self.setFocus()
         self._edges={}
         global Dirty
-        Dirty = True
-
-
+        Dirty = True 
+        self.mouseMove=False
+        self.mousePress=False
     def getQImage4Equation(self ):
         iEditLine=len(self.equation);
         iHeight=1;
@@ -222,7 +254,7 @@ class LocationItem(QGraphicsItem):
         for i in range(iEditLine):
             strData=self.equation[i]         
             try:  
-                guardFig.text(0.1,iHeight-0.2*(i+1), strData, fontsize=10)       
+                guardFig.text(0.1,iHeight-0.2*(i+1), strData,family="Consolas",  fontsize=10)       
             except:
                 pass
         canvas.draw()
@@ -236,7 +268,7 @@ class LocationItem(QGraphicsItem):
         canvas  = FigureCanvas(guardFig)   
         strData=self.guard      
         try:
-            guardFig.text(0.1,0.3,  strData, fontsize=10)       
+            guardFig.text(0.1,0.3,  strData,family="Consolas",  fontsize=10)       
         except:
             pass
         canvas.draw()
@@ -255,6 +287,20 @@ class LocationItem(QGraphicsItem):
         dialog = LocationItemDlg(self, self.parentWidget(),self.scene, self.parentForm )
         dialog.exec_()
     
+    def mousePressEvent(self, event):
+        self.mousePress=True
+        super(LocationItem, self).mousePressEvent(event)
+    def mouseMoveEvent(self, event):        
+        super(LocationItem, self).mouseMoveEvent(event)
+        if self.mousePress:
+            self.mouseMove=True
+    def mouseReleaseEvent(self, event):
+        
+        super(LocationItem, self).mouseReleaseEvent(event)
+        if self.mousePress:            
+            self.parentForm.RePaintLine()
+        self.mouseMove=False
+        self.mousePress=False
     @property
     def edgeToSelf(self):
         return self._edgeToSelf
@@ -294,6 +340,15 @@ class LocationItem(QGraphicsItem):
         if not isinstance(value, bool ):
             raise ValueError('IsInitial must be a boolean!')        
         self._isInitial = value
+    @property
+    def isEnd(self):
+        return self._isEnd
+
+    @isEnd.setter
+    def isEnd(self, value):
+        if not isinstance(value, bool ):
+            raise ValueError('IsEnd must be a boolean!')        
+        self._isEnd = value
     
      
     @property
@@ -303,7 +358,7 @@ class LocationItem(QGraphicsItem):
     @isNameAbove.setter
     def isNameAbove(self, value):
         if not isinstance(value, bool ):
-            raise ValueError('IsInitial must be a boolean!')        
+            raise ValueError('IsNameAbove must be a boolean!')        
         self._isNameAbove = value
     
     
@@ -347,7 +402,7 @@ class LocationItem(QGraphicsItem):
         painter.drawImage(self.rect, self.imageEquation)
         pointText=QPointF(self.rect.x(), self.rect.y()-40)
         rectGuard=QRectF(self.rect.x(), self.rect.y()-35, self.rect.width(), 30)
-        if self.isNameAbove:            
+        if not self.isNameAbove:            
             pointText=QPointF(self.rect.x(), self.rect.y()+self.rect.height()+50)
             rectGuard=QRectF(self.rect.x(), self.rect.y() +self.rect.height()+5, self.rect.width(), 30)
         painter.drawText(pointText,  self.boxName)
@@ -362,6 +417,7 @@ class LocationItem(QGraphicsItem):
         if change != QGraphicsItem.ItemSelectedChange:
             global Dirty
             Dirty = True
+        
         return QGraphicsItem.itemChange(self, change, variant)
 
 

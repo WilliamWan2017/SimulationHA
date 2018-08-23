@@ -57,7 +57,6 @@ class GraphicsView(QGraphicsView):
         else:
             factor=0.5
         self.scale(factor, factor)
-
 class MainForm(QDialog):
 
     def __init__(self, parent=None):
@@ -73,7 +72,7 @@ class MainForm(QDialog):
         self.printer = QPrinter(QPrinter.HighResolution)
         self.printer.setPageSize(QPrinter.Letter)
 
-        self.view = GraphicsView()
+        self.view = GraphicsView(self)
  
         self.scene = QGraphicsScene(self)
         self.scene.setSceneRect(0, 0, PageSize[0], PageSize[1])
@@ -86,19 +85,19 @@ class MainForm(QDialog):
                 ("Add &Location", self.addLocation), 
                 ("Add &Edge", self.addEdge), 
                 ("Add &Variable", self.addVariable), 
-                ("List &TextName", self.listTextName), 
+               # ("List &TextName", self.listTextName), 
                 ("&Open...", self.open),
                 ("&Save", self.save),
                 ("&RePaintLine", self.RePaintLine),
                 ("&Quit", self.accept), 
-                ("&SameX", self.SameX), 
-                ("&New HA", self.newHA), 
-                ("QLineEdit", "Current HA Name")  , 
+                #("&SameX", self.SameX), 
+                ("&New Black HA", self.newHA),              
+                ("QLineEdit", "Current HA Name")  ,   
                 ("QComboBox", "HA Name List"),                 
                 ("QLineEdit", "Current Model Name")  , 
                 ("&Switch HA", self.switchHA)  ,        
                 ("&Delete HA", self.deleteHA), 
-                ("&Copy And New HA", self.copyHA)
+                ("&Copy And New HA", self.copyHA) 
                 ):
             if text  in ['QLineEdit', 'QComboBox']:
                 lbl=QLabel(slot) 
@@ -170,13 +169,14 @@ class MainForm(QDialog):
         # setup table widget
         self.VariablesWidget.itemDoubleClicked.connect(self.VariablesWidgetDoubleClicked)
         self.VariablesWidget.setColumnCount(4)
-        self.VariablesWidget.setHorizontalHeaderLabels(['Name','Variable', 'Input', 'Output'])
+        self.VariablesWidget.setHorizontalHeaderLabels(['Name','Initial Value', 'Input', 'Output', "IsConstant"])
          
         #self.VariablesWidget.hideColumn(0)
-        self.VariablesWidget.setColumnWidth(0, 50)        
+        self.VariablesWidget.setColumnWidth(0, 100)        
         self.VariablesWidget.setColumnWidth(1, 200)
-        self.VariablesWidget.setColumnWidth(2, 140)
-        self.VariablesWidget.setColumnWidth(3,140)
+        self.VariablesWidget.setColumnWidth(2, 100)
+        self.VariablesWidget.setColumnWidth(3,100)
+        self.VariablesWidget.setColumnWidth(4,100)
         self.VariablesWidget.setSelectionMode(QAbstractItemView.SingleSelection)
         #self.VariablesWidget.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.VariablesWidget.setSelectionBehavior(QAbstractItemView.SelectItems)
@@ -192,7 +192,8 @@ class MainForm(QDialog):
         fm = QFontMetrics(self.font())
         self.resize(self.scene.width() + fm.width(" Delete... ") + 50,
                     self.scene.height() + 50)
-        self.setWindowTitle("Page Designer")
+        self.setWindowTitle("Simulation of HA Designer")
+        self.setWindowFlags(Qt.Window | Qt.WindowMinimizeButtonHint|Qt.WindowMaximizeButtonHint|Qt.WindowCloseButtonHint) 
         self.dicText= {}
         self.dicLine={}
         self.dicVariable={}
@@ -337,9 +338,10 @@ class MainForm(QDialog):
         self.VariablesWidget.insertRow(row_index)
         row_index=row_index
         self.VariablesWidget.setItem(row_index, 0, QTableWidgetItem( variableItem.boxName, 0))
-        self.VariablesWidget.setCellWidget(row_index, 1, ImgWidget(  variableItem.getQPixmap4Variable(), self))
+        self.VariablesWidget.setItem(row_index, 1, QTableWidgetItem(  variableItem.initialValue, 0))
         self.VariablesWidget.setItem(row_index, 2, QTableWidgetItem( str(variableItem.isInput), 0))
         self.VariablesWidget.setItem(row_index, 3, QTableWidgetItem( str(variableItem.isOutput), 0))
+        self.VariablesWidget.setItem(row_index, 4, QTableWidgetItem( str(variableItem.isConstant), 0))
         self.VariablesWidget.resizeRowToContents(row_index)
         self.VariablesWidget.resizeRowsToContents()
         self.VariablesWidget.resizeColumnsToContents()
@@ -351,11 +353,14 @@ class MainForm(QDialog):
         rowCount=self.VariablesWidget.rowCount()
         for row_index in range(rowCount):
             if self.VariablesWidget.item(row_index, 0).text()==variableItem.boxName:                  
-                self.VariablesWidget.setCellWidget(row_index, 1, ImgWidget(  variableItem.getQPixmap4Variable(), self))
+                #self.VariablesWidget.setCellWidget(row_index, 1, ImgWidget(  variableItem.getQPixmap4Variable(), self))
                 #self.VariablesWidget.setCellWidget(row_index, 2,  CheckWidget(  variableItem.isInput, self)) 
                 #self.VariablesWidget.setCellWidget(row_index, 3,  CheckWidget(  variableItem.isOutput, self))
+         
+                self.VariablesWidget.setItem(row_index, 1, QTableWidgetItem(  variableItem.initialValue, 0))
                 self.VariablesWidget.setItem(row_index, 2, QTableWidgetItem( str(variableItem.isInput), 0))
                 self.VariablesWidget.setItem(row_index, 3, QTableWidgetItem( str(variableItem.isOutput), 0))
+                self.VariablesWidget.setItem(row_index, 4, QTableWidgetItem( str(variableItem.isConstant), 0))
                 self.VariablesWidget.resizeRowToContents(row_index)
                 self.VariablesWidget.resizeColumnsToContents()
           #ui->tableWidget->resizeRowToContents(curRow)
@@ -422,7 +427,7 @@ class MainForm(QDialog):
     def RePaintLine(self):
         for line in  self.dicLine.values():
             line.resetLine();
-        self.scene.update()
+       # self.scene.update()
     def position(self):
         point = self.mapFromGlobal(QCursor.pos())
         if not self.view.geometry().contains(point):
@@ -609,9 +614,13 @@ class MainForm(QDialog):
             #draw lines between diffenent Loaation
             for key, ln in Variables.items():
                 if ln["type"] == "Variable":    
-                        v=VariableItem( ln["boxName"],ln["isInput"], ln["isOutput"], self)    
-                        self.dicVariable[v.boxName]=v                
-                        self.addVariableInTable(v)
+                    if not "isConstant" in ln.keys():
+                        ln["isConstant"]=False
+                    if not "initialValue" in ln.keys():
+                        ln["initialValue"]="0"      
+                    v=VariableItem( ln["boxName"],ln["isInput"], ln["isOutput"], ln["isConstant"], ln["initialValue"], self)    
+                    self.dicVariable[v.boxName]=v                
+                    self.addVariableInTable(v)
     def DrawLine(self, Lines):
             #draw lines between diffenent Loaation
             for key, ln in Lines.items():
@@ -666,7 +675,7 @@ class MainForm(QDialog):
         elif item["type"]  == "Location":
     #        def __init__(self, boxName, equation, guard, position, isInitial, isNameAbove, scene,parentForm, style=Qt.SolidLine,
     
-            tx=LocationItem(item, '', '','', '', '',   self.scene, self)
+            tx=LocationItem(item, '', '','', '','',  '',   self.scene, self)
             self.dicText[tx.boxName]=tx;
             tx.setRotation(item["rotation"] )
             pass

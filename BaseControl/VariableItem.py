@@ -55,12 +55,21 @@ class VariableItemDlg(QDialog):
         self.isInput=QCheckBox()
         lblIsInput=QLabel("&IsInput")
         lblIsInput.setBuddy(self.isInput)
-               
-        self.figVariable = Figure(figsize=(5, 0.4))        
-        self.canvVariable  = FigureCanvas(self.figVariable) 
         
-        lblCanvVariable = QLabel("&Format(Variable):")
-        lblCanvVariable.setBuddy(self.canvVariable)
+        self.isConstant=QCheckBox()
+        lblIsConstant=QLabel("&isConstant")
+        lblIsConstant.setBuddy(self.isConstant)
+               
+        
+        self.txtInitialValue = QLineEdit()           
+        lblInitialValue = QLabel("&Initial Value:")
+        lblInitialValue.setBuddy(self.txtInitialValue)
+        
+        #self.figVariable = Figure(figsize=(5, 0.4))        
+        #self.canvVariable  = FigureCanvas(self.figVariable) 
+        
+        #lblCanvVariable = QLabel("&Format(Variable):")
+        #lblCanvVariable.setBuddy(self.canvVariable)
         
         btnDelete=QPushButton("Delete Variable")
         btnDelete.clicked.connect(self.delete)
@@ -79,11 +88,16 @@ class VariableItemDlg(QDialog):
         layout.addWidget(self.txtVariableName, 0, 1, 1,5) 
         layout.addWidget(lblIsInput, 1, 0)
         layout.addWidget(self.isInput, 1,1)        
-        layout.addWidget(lblIsOutput, 2, 0) 
-        layout.addWidget(self.isOutput, 2 , 1 ) 
-        
-        layout.addWidget(lblCanvVariable,3, 0)        
-        layout.addWidget(self.canvVariable, 3,1,1, 6) 
+        layout.addWidget(lblIsOutput, 1, 2) 
+        layout.addWidget(self.isOutput, 1 , 3 ) 
+       
+        layout.addWidget(lblIsConstant, 2, 0) 
+        layout.addWidget(self.isConstant, 2 , 1 ) 
+         
+        layout.addWidget(lblInitialValue,3, 0)        
+        layout.addWidget(self.txtInitialValue, 3,1,1, 6) 
+       # layout.addWidget(lblCanvVariable,3, 0)        
+        #layout.addWidget(self.canvVariable, 3,1,1, 6) 
         layout.addWidget(self.buttonBox, 4 , 0, 1, 5)    
         layout.addWidget(btnDelete, 4 , 5)
         self.setLayout(layout) 
@@ -110,7 +124,7 @@ class VariableItemDlg(QDialog):
 
     def accept(self):   
         if self.item is None:
-            self.item =VariableItem(  self.txtVariableName.text(),  self.isInput.isChecked(), self.isOutput.isChecked(),   self.parentForm)
+            self.item =VariableItem(  self.txtVariableName.text(),  self.isInput.isChecked(), self.isOutput.isChecked(), self.isConstant.isChecked(), self.txtInitialValue.text(),   self.parentForm)
             self.parentForm.addVariableInTable(self.item)
         if (self.item.boxName==""):
             self.item.boxName=self.txtVariableName.text()
@@ -119,7 +133,9 @@ class VariableItemDlg(QDialog):
                 self.parentForm.dicVariable.pop(self.item.boxName)
         self.parentForm.dicVariable[self.item.boxName]=self.item
         self.item.isInput=self.isInput.isChecked() 
-        self.item.isOutput=self.isOutput.isChecked()         
+        self.item.isOutput=self.isOutput.isChecked()      
+        self.item.isConstant=self.isConstant.isChecked()       
+        self.item.initialValue=self.txtInitialValue.text()
         self.parentForm.dicVariable[self.item.boxName]=self.item
         self.parentForm.setVariableInTable(self.item)
         global Dirty
@@ -136,14 +152,18 @@ class VariableItemDlg(QDialog):
 
 
 class VariableItem(object): 
-    def __init__(self, boxName,isInput,isOutput ,parentForm): 
+    def __init__(self, boxName,isInput,isOutput, isConstant, initialValue ,parentForm): 
         if isinstance(boxName, dict ):            
             isInput=boxName["isInput"] 
             isOutput=boxName["isOutput"] 
+            isConstant=boxName["isConstant"]
+            initialValue=boxName["initialValue"]
             boxName=boxName["boxName"] 
         self.parentForm=parentForm
         self.isOutput=isOutput 
         self.boxName=boxName  
+        self.isConstant=isConstant
+        self.initialValue=initialValue
         self._isInput =False
         self._isOutput=False
         global Dirty
@@ -166,7 +186,8 @@ class VariableItem(object):
         return QPixmap(im)
          
     def toSaveJson(self):
-        data={"type":"Variable", "boxName":self.boxName,   "isInput":self.isInput, "isOutput":self.isOutput }
+        data={"type":"Variable", "boxName":self.boxName,   "isInput":self.isInput, "isOutput":self.isOutput , 
+        "isConstant":self.isConstant, "initialValue":self.initialValue}
         return data  
     
     @property
@@ -189,7 +210,6 @@ class VariableItem(object):
             raise ValueError('isInput must be a boolean!')        
         self._isInput = value
     
-     
     @property
     def isOutput(self):
         return self._isOutput
@@ -201,6 +221,27 @@ class VariableItem(object):
         self._isOutput = value
     
           
+     
+    @property
+    def isConstant(self):
+        return self._isConstant
+
+    @isConstant.setter
+    def isConstant(self, value):
+        if not isinstance(value, bool ):
+            raise ValueError('isConstant must be a boolean!')        
+        self._isConstant = value
+    
+    @property
+    def initialValue(self):
+        return self._initialValue
+
+    @initialValue.setter
+    def initialValue(self, value):
+        if not isinstance(value, str ):
+            raise ValueError('initialValue must be a string!')        
+        self._initialValue = value
+        
 
 
  

@@ -154,20 +154,54 @@ class EdgeItemDlg(QDialog):
         
         self.figGuard.clf()
         try:
-            self.figGuard.text(0.1,0.2, self.txtGuard.text(), fontsize=16)
+            self.figGuard.text(0.1,0.2, self.txtGuard.text(), family="Consolas",  fontsize=16)
         except:
             pass
         self.canvGuard.draw()
         self.figReset.clf()
         try:
-            self.figReset.text(0.1,0.2, self.txtReset.text(), fontsize=16)
+            self.figReset.text(0.1,0.2, self.txtReset.text(), family="Consolas", fontsize=16)
         except:
             pass
         self.canvReset.draw()
     def accept(self):
+        if (self.fromLocation.currentText()==""):
+            QMessageBox.question(self,
+                            "Please Select FromLocation Name",
+                            "Fail to Accept,Please Select FromLocation Name!",
+                            QMessageBox.Ok )  
+            return;    
+        if (self.toLocation.currentText()==""):
+            QMessageBox.question(self,
+                            "Please Select ToLocation Name",
+                            "Fail to Accept,Please Select ToLocation Name!",
+                            QMessageBox.Ok )  
+            return;     
+        if (tmpLocationName==""):
+            QMessageBox.question(self,
+                            "Please Input Edge Name",
+                            "Fail to Accept,Please Input a Name for the Edge!",
+                            QMessageBox.Ok )  
+            return;   
+        tmpLocationName=self.txtLocationName.text()       
         if self.item is None:
+            if (tmpLocationName in parentFrom.dicLine.keys()):
+                QMessageBox.question(self,
+                            "Edge Name Exists",
+                            "Fail to Accept,Please Change a Name for this Edge due to there is already an edge named "+tmpLocationName +"!",
+                            QMessageBox.Ok )  
+                return
             self.item = EdgeItem(self.LocationName.text(), None,None, "","",  self.scene, self.parentForm)  
             self.parentForm.addEdgeInTable(self.item)
+        else:
+            if (self.item.boxName!=tmpLocationName):
+                if (tmpLocationName in parentFrom.dicLine.keys()):
+                    QMessageBox.question(self,
+                            "Edge Name Exists",
+                            "Fail to Accept,Please Change a Name for this Edge due to there is already an edge named "+tmpLocationName +"!",
+                         QMessageBox.Ok )  
+                    return
+                self.parentForm.dicLine.pop(self.item.boxName)
         self.item.fromLocation=self.parentForm.dicText[self.fromLocation.currentText()]
         self.item.toLocation=self.parentForm.dicText[self.toLocation .currentText()]
         self.item.boxName=self.LocationName.text()
@@ -288,7 +322,7 @@ class EdgeItem(QGraphicsLineItem):
         canvas  = FigureCanvas(guardFig)   
         strData=self.guard         
         try:
-            guardFig.text(0.1,0.3,  strData, fontsize=10)       
+            guardFig.text(0.1,0.3,  strData,family="Consolas",  fontsize=10)       
         except:
             pass
         canvas.draw()
@@ -302,7 +336,7 @@ class EdgeItem(QGraphicsLineItem):
         canvas  = FigureCanvas(guardFig)   
         strData=self.reset            
         try:
-            guardFig.text(0.1,0.3,  strData, fontsize=10)       
+            guardFig.text(0.1,0.3,  strData, family="Consolas", fontsize=10)       
         except:
             pass
         canvas.draw()
