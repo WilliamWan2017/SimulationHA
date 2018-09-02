@@ -82,6 +82,8 @@ class VariableItemDlg(QDialog):
             self.txtVariableName.setText(self.item.boxName)
             self.isOutput.setChecked(self.item.isOutput)
             self.isInput.setChecked(self.item.isInput) 
+            self.isConstant.setChecked(self.item.isConstant)
+            self.txtInitialValue.setText(self.item.initialValue)
 
         layout = QGridLayout()
         layout.addWidget(lblVariableName, 0, 0)
@@ -123,14 +125,33 @@ class VariableItemDlg(QDialog):
         
 
     def accept(self):   
+        tmpLocationName=self.txtVariableName.text()     
+        if (tmpLocationName==""):
+            QMessageBox.question(self,
+                            "Please Input Variable Name",
+                            "Fail to Accept,Please Input a Name for the Edge!",
+                            QMessageBox.Ok )  
+            return;     
         if self.item is None:
+            if (tmpLocationName in self.parentForm.dicVariable.keys()):
+                QMessageBox.question(self,
+                            "Variable Name Exists",
+                            "Fail to Accept,Please Change a Name for this Variable due to there is already a Variable named "+tmpLocationName +"!",
+                            QMessageBox.Ok )  
+                return
             self.item =VariableItem(  self.txtVariableName.text(),  self.isInput.isChecked(), self.isOutput.isChecked(), self.isConstant.isChecked(), self.txtInitialValue.text(),   self.parentForm)
             self.parentForm.addVariableInTable(self.item)
-        if (self.item.boxName==""):
-            self.item.boxName=self.txtVariableName.text()
         else:
-            if (self.item.boxName!=self.txtVariableName.text()):
+            if (self.item.boxName!=tmpLocationName):
+                if (tmpLocationName in self.parentForm.dicLine.keys()):
+                    QMessageBox.question(self,
+                            "Variable Name Exists",
+                            "Fail to Accept,Please Change a Name for this Variable due to there is already a Variable named "+tmpLocationName +"!",
+                         QMessageBox.Ok )  
+                    return
                 self.parentForm.dicVariable.pop(self.item.boxName)
+                #self.parentForm.addVariableInTable(self.item)
+            
         self.parentForm.dicVariable[self.item.boxName]=self.item
         self.item.isInput=self.isInput.isChecked() 
         self.item.isOutput=self.isOutput.isChecked()      
@@ -143,10 +164,10 @@ class VariableItemDlg(QDialog):
         QDialog.accept(self)
     
     def apply(self):        
-        self.figVariable.clf()
-        self.figVariable.text(0.1,0.2, self.txtVariableName.text(), fontsize=16)
-        self.canvVariable.draw()
-        
+        #self.figVariable.clf()
+        #self.figVariable.text(0.1,0.2, self.txtVariableName.text(), fontsize=16)
+        #self.canvVariable.draw()
+        pass
  
 
 

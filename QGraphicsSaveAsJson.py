@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 from matplotlib import colors as mcolors 
 import functools
 import random
-
 import json
 import sys
 from BaseControl.TextItem import TextItem, TextItemDlg
@@ -168,7 +167,7 @@ class MainForm(QDialog):
         layoutTable.addWidget(self.VariablesWidget) 
         # setup table widget
         self.VariablesWidget.itemDoubleClicked.connect(self.VariablesWidgetDoubleClicked)
-        self.VariablesWidget.setColumnCount(4)
+        self.VariablesWidget.setColumnCount(5)
         self.VariablesWidget.setHorizontalHeaderLabels(['Name','Initial Value', 'Input', 'Output', "IsConstant"])
          
         #self.VariablesWidget.hideColumn(0)
@@ -199,7 +198,11 @@ class MainForm(QDialog):
         self.dicVariable={}
         self.dicHA={}
         self.dicModel={}
+        #self.dicModel["HAs"]={}         
         self.currentProject={}
+        #self.currentProject["Models"]={}
+        
+        #self.currentProject["Models"]["NoName"]=self.dicModel
         self.currentHA=None
     def txtChanged(self):
         self.setDirty()
@@ -369,18 +372,22 @@ class MainForm(QDialog):
         row_index=self.EdgeWidget.rowCount()
         self.EdgeWidget.insertRow(row_index)
         row_index=row_index
-        self.EdgeWidget.setItem(row_index, 0, QTableWidgetItem( edgeItem.boxName, 0))
-        self.EdgeWidget.setCellWidget(row_index, 1, ImgWidget(  edgeItem.getQPixmap4Guard(), self))
-        self.EdgeWidget.setCellWidget(row_index, 2,  ImgWidget(  edgeItem.getQPixmap4Reset(), self))
+        self.EdgeWidget.setItem(row_index, 0, QTableWidgetItem( edgeItem.boxName, 0))        
+        self.EdgeWidget.setItem(row_index, 1, QTableWidgetItem( edgeItem.guard, 0))        
+        self.EdgeWidget.setItem(row_index, 2, QTableWidgetItem( edgeItem.reset, 0))
+        #self.EdgeWidget.setCellWidget(row_index, 1, ImgWidget(  edgeItem.getQPixmap4Guard(), self))
+        #self.EdgeWidget.setCellWidget(row_index, 2,  ImgWidget(  edgeItem.getQPixmap4Reset(), self))
         self.EdgeWidget.resizeRowToContents(row_index)        
         self.EdgeWidget.resizeRowsToContents()
         self.EdgeWidget.resizeColumnsToContents()
     def setEdgeInTable(self, edgeItem):        
         rowCount=self.EdgeWidget.rowCount()
         for row_index in range(rowCount):
-            if self.EdgeWidget.item(row_index, 0).text()==edgeItem.boxName: 
-                self.EdgeWidget.setCellWidget(row_index, 1, ImgWidget(  edgeItem.getQPixmap4Guard(), self))
-                self.EdgeWidget.setCellWidget(row_index, 2,  ImgWidget(  edgeItem.getQPixmap4Reset(), self))
+            if self.EdgeWidget.item(row_index, 0).text()==edgeItem.boxName:  
+                self.EdgeWidget.setItem(row_index, 1, QTableWidgetItem( edgeItem.guard, 0))       
+                self.EdgeWidget.setItem(row_index, 2, QTableWidgetItem( edgeItem.reset, 0))
+                #self.EdgeWidget.setCellWidget(row_index, 1, ImgWidget(  edgeItem.getQPixmap4Guard(), self))
+                #self.EdgeWidget.setCellWidget(row_index, 2,  ImgWidget(  edgeItem.getQPixmap4Reset(), self))
                 self.EdgeWidget.resizeRowToContents(row_index)
                 self.EdgeWidget.resizeColumnsToContents()
                 return
@@ -586,6 +593,12 @@ class MainForm(QDialog):
             HASave["name"]=self.txtHAName.text()
             #self.dicHA[self.txtHAName.text()]=HASave
             if (len(dicBoxSave)>0):
+                if not "Models" in self.currentProject.keys():
+                    self.currentProject["Models"]={}
+                if not self.txtModelName.text() in self.currentProject["Models"].keys():
+                    self.currentProject["Models"][self.txtModelName.text()]={}                    
+                if not "HAs" in self.currentProject["Models"][self.txtModelName.text()].keys():
+                    self.currentProject["Models"][self.txtModelName.text()]["HAs"]={}
                 self.currentProject["Models"][self.txtModelName.text()]["HAs"][self.txtHAName.text()]=HASave            
             CurrentModel={}
             CurrentModel["HAs"]=self.dicHA
@@ -675,7 +688,7 @@ class MainForm(QDialog):
         elif item["type"]  == "Location":
     #        def __init__(self, boxName, equation, guard, position, isInitial, isNameAbove, scene,parentForm, style=Qt.SolidLine,
     
-            tx=LocationItem(item, '', '','', '','',  '',   self.scene, self)
+            tx=LocationItem(item, '', '','', '','',  '', '',   self.scene, self)
             self.dicText[tx.boxName]=tx;
             tx.setRotation(item["rotation"] )
             pass

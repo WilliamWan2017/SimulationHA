@@ -95,16 +95,16 @@ class EdgeItemDlg(QDialog):
         layout.addWidget(self.toLocation , 1, 1, 1, 1) 
         layout.addWidget(self.LocationName, 2, 1, 1, 2)
         layout.addWidget(LocationNameLabel, 2, 0)
-        layout.addWidget(self.txtGuard, 3, 1, 1, 2)
+        layout.addWidget(self.txtGuard, 3, 1, 1, 5)
         layout.addWidget(GuardLabel, 3, 0)
-        layout.addWidget(self.txtReset, 4, 1, 1, 2)
+        layout.addWidget(self.txtReset, 4, 1, 1, 5)
         layout.addWidget(ResetLabel, 4, 0)
         
         
-        layout.addWidget(self.canvGuard, 5, 1, 1, 5)
-        layout.addWidget(lblCanvGuard, 5, 0)
-        layout.addWidget(self.canvReset,6, 1, 1, 5)
-        layout.addWidget(lblCanvReset, 6, 0)     
+        #layout.addWidget(self.canvGuard, 5, 1, 1, 5)
+        #layout.addWidget(lblCanvGuard, 5, 0)
+        #layout.addWidget(self.canvReset,6, 1, 1, 5)
+        #layout.addWidget(lblCanvReset, 6, 0)     
         
         
         layout.addWidget(self.buttonLocation, 7, 0, 1, 5)    
@@ -151,7 +151,7 @@ class EdgeItemDlg(QDialog):
 
 
     def apply(self):       
-        
+        return
         self.figGuard.clf()
         try:
             self.figGuard.text(0.1,0.2, self.txtGuard.text(), family="Consolas",  fontsize=16)
@@ -177,15 +177,15 @@ class EdgeItemDlg(QDialog):
                             "Fail to Accept,Please Select ToLocation Name!",
                             QMessageBox.Ok )  
             return;     
+        tmpLocationName=self.LocationName.text()     
         if (tmpLocationName==""):
             QMessageBox.question(self,
                             "Please Input Edge Name",
                             "Fail to Accept,Please Input a Name for the Edge!",
                             QMessageBox.Ok )  
-            return;   
-        tmpLocationName=self.txtLocationName.text()       
+            return;     
         if self.item is None:
-            if (tmpLocationName in parentFrom.dicLine.keys()):
+            if (tmpLocationName in self.parentForm.dicLine.keys()):
                 QMessageBox.question(self,
                             "Edge Name Exists",
                             "Fail to Accept,Please Change a Name for this Edge due to there is already an edge named "+tmpLocationName +"!",
@@ -195,7 +195,7 @@ class EdgeItemDlg(QDialog):
             self.parentForm.addEdgeInTable(self.item)
         else:
             if (self.item.boxName!=tmpLocationName):
-                if (tmpLocationName in parentFrom.dicLine.keys()):
+                if (tmpLocationName in self.parentForm.dicLine.keys()):
                     QMessageBox.question(self,
                             "Edge Name Exists",
                             "Fail to Accept,Please Change a Name for this Edge due to there is already an edge named "+tmpLocationName +"!",

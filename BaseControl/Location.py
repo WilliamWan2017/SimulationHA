@@ -2,6 +2,10 @@ import json
 import functools
 import random
 import sys
+from latex2sympy.process_latex import process_sympy
+from BaseControl.CheckPointItem import CheckPointItem
+import FormatParseLatex
+from sympy import *
 from matplotlib.backends.backend_qt5agg import (
         FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
@@ -12,11 +16,13 @@ from PyQt5.QtWidgets import (QApplication, QDialog, QFrame,
                              QGraphicsItem, QGraphicsPixmapItem,QGraphicsLineItem,    
                              QGraphicsScene, QGraphicsTextItem, QGraphicsView, QGridLayout,
                              QHBoxLayout, QLabel, QMenu, QMessageBox,QPushButton, QSpinBox,
-                             QStyle, QTextEdit, QVBoxLayout, QLineEdit, QCheckBox)
+                             QStyle, QTextEdit, QVBoxLayout, QLineEdit, QCheckBox, QComboBox)
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QAbstractItemView
 from PyQt5.QtGui import QFont,QCursor,QFontMetrics,QTransform,QPainter,QPen,QPixmap,QBrush, QImage
 from PyQt5.QtPrintSupport import QPrinter,QPrintDialog
 
 MAC = True
+InputBySympy=True
 try:
     from PyQt5.QtGui import qt_mac_set_native_menubar
 except ImportError:
@@ -58,9 +64,9 @@ class LocationItemDlg(QDialog):
         lblIsEnd=QLabel("&isEnd")
         lblIsEnd.setBuddy(self.isEnd)
         
-        self.txtGuard = QLineEdit()           
-        lblGuard = QLabel("&Guard:")
-        lblGuard.setBuddy(self.txtGuard)
+        self.txtInvariant = QLineEdit()           
+        lblInvariant = QLabel("&Invariant:")
+        lblInvariant.setBuddy(self.txtInvariant)
         
         self.figEquation = Figure(figsize=(3, 1))        
         self.canvEquation  = FigureCanvas(self.figEquation) 
@@ -68,12 +74,52 @@ class LocationItemDlg(QDialog):
         lblCanvEquation = QLabel("&Format(Equations):")
         lblCanvEquation.setBuddy(self.canvEquation)
         
-        self.figGuard = Figure(figsize=(5, 0.4))
+        self.ediSymEquation = QTextEdit()         
+        self.ediSymEquation.setAcceptRichText(True)
+        self.ediSymEquation.setTabChangesFocus(False)
+        lblSymEquation= QLabel("&Sympy(Equations):")
+        lblSymEquation.setBuddy(self.ediSymEquation)
+       
+       
+       
+        self.txtCheckPointSeq = QLineEdit()           
+        lblCheckPointSeq = QLabel("&CheckPoint Seq:")
+        lblCheckPointSeq.setBuddy(self.txtCheckPointSeq)
         
-        self.canvGuard  = FigureCanvas(self.figGuard)
+        
+        self.cmbVariableName=QComboBox()        
+        self.dicVariableList=[ key for key in parent.dicVariable.keys() if parent.dicVariable[key].isConstant ==False]
+         
+        self.cmbVariableName.addItems(self.dicVariableList)
+        lblVariableName = QLabel("&variableName:")
+        lblVariableName.setBuddy(self.cmbVariableName) 
+        
+        
+        self.txtValue = QLineEdit()           
+        lblValue = QLabel("&Value:")
+        lblValue.setBuddy(self.txtValue)
+        
+        btnAddCheckPoint=QPushButton("&Save CheckPoint")
+        btnAddCheckPoint.clicked.connect(self.SaveCheckPoint)
+        
+        
+        btnRemoveCheckPoint=QPushButton("&Remove CheckPoint")
+        btnRemoveCheckPoint.clicked.connect(self.RemoveCheckPoint)
+        
+            #self.EdgeWidget.resizeColumnsToContents() 
+        self.VariablesWidget = QTableWidget() 
+        # setup table widget
+        self.VariablesWidget.itemDoubleClicked.connect(self.VariablesWidgetDoubleClicked)
+        self.VariablesWidget.setColumnCount(3)
+        self.VariablesWidget.setHorizontalHeaderLabels(['Seq','Variable', 'Value'])
     
-        lblCanvGuard = QLabel("&Format(Guard):")
-        lblCanvGuard.setBuddy(self.canvGuard)
+        #self.figInvariant = Figure(figsize=(5, 0.4))
+        
+        #self.canvInvariant  = FigureCanvas(self.figInvariant)
+ 
+    
+        #lblCanvInvariant = QLabel("&Format(Invariant):")
+        #lblCanvInvariant.setBuddy(self.canvInvariant)
         btnDelete=QPushButton("Delete Location")
         btnDelete.clicked.connect(self.delete)
         
@@ -87,11 +133,13 @@ class LocationItemDlg(QDialog):
             self.isInitial.setChecked(self.item.isInitial)            
             self.isEnd.setChecked(self.item.isEnd)
             self.isNameAbove.setChecked(self.item.isNameAbove)
-            self.txtGuard.setText(self.item.guard)
+            self.txtInvariant.setText(self.item.invariant)
+            self.SetVariableWdigetAll(self.item.checkPoints)
+
 
         layout = QGridLayout()
         layout.addWidget(lblEquation, 0, 0)
-        layout.addWidget(self.ediEquation, 1, 0, 1, 6)
+        layout.addWidget(self.ediEquation, 1, 0, 1, 8)
         layout.addWidget(lblLocationName, 2, 0)
         layout.addWidget(self.txtLocationName, 2, 1, 1, 2)
         layout.addWidget(lblIsNameAbove, 2, 3)
@@ -100,23 +148,44 @@ class LocationItemDlg(QDialog):
         layout.addWidget(self.isInitial, 3, 1 )      
         layout.addWidget(lblIsEnd, 3, 2) 
         layout.addWidget(self.isEnd, 3, 3 )
-        layout.addWidget(lblGuard, 4, 0)
-        layout.addWidget(self.txtGuard,  4, 1, 1, 5)
+        layout.addWidget(lblInvariant, 4, 0)
+        layout.addWidget(self.txtInvariant,  4, 1, 1, 7)
         
         layout.addWidget(lblCanvEquation, 5, 0)        
-        layout.addWidget(self.canvEquation, 6, 0, 3, 6)
-        layout.addWidget(lblCanvGuard, 10, 0)        
-        layout.addWidget(self.canvGuard, 10,1, 1, 5)  
-        layout.addWidget(self.buttonBox, 11, 0, 1, 5)    
-        layout.addWidget(btnDelete, 11, 5)
+        layout.addWidget(self.canvEquation, 6, 0, 3, 8)
+        
+        layout.addWidget(lblSymEquation, 10, 0)
+        layout.addWidget(self.ediSymEquation, 11, 0, 1, 8)
+        #layout.addWidget(lblCanvInvariant, 10, 0)                
+        #layout.addWidget(self.canvInvariant, 10,1, 1, 5)  
+        layout.addWidget(self.buttonBox, 12, 0, 1, 6)    
+        layout.addWidget(btnDelete, 12, 7)
         self.setLayout(layout)
 
+        layout.addWidget(lblCheckPointSeq, 13, 0)
+        layout.addWidget(self.txtCheckPointSeq, 13, 1)
+        layout.addWidget(lblVariableName, 13, 2)
+        layout.addWidget(self.cmbVariableName, 13, 3)
+        layout.addWidget(lblValue, 13, 4)
+        layout.addWidget(self.txtValue, 13, 5)
+        
+        layout.addWidget(btnAddCheckPoint, 13, 6 )
+        layout.addWidget(btnRemoveCheckPoint, 13, 7 )
+        
+        
+        layout.addWidget( self.VariablesWidget, 14, 0, 1, 8)
+        
+        self.VariablesWidget.setSelectionMode(QAbstractItemView.SingleSelection)
+        #self.VariablesWidget.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.VariablesWidget.setSelectionBehavior(QAbstractItemView.SelectItems)
+        self.VariablesWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
  
         self.ediEquation.textChanged.connect(self.updateUi)
-        self.txtGuard.textChanged.connect(self.updateUi)
+        self.txtInvariant.textChanged.connect(self.updateUi)
          
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject) 
+        self.resize(800, 900)
         #self.buttonBox.button(QDialogButtonBox.Reset).clicked.connect(self.apply)
 
         self.setWindowTitle("{0} Location Item".format(
@@ -131,8 +200,85 @@ class LocationItemDlg(QDialog):
     def updateUi(self):
         self.apply()
 
- 
+    def SetVariableWdigetAll(self, checkPoints):       
+        self.VariablesWidget.clearContents()
+        self.VariablesWidget.setRowCount(0)     
+        for strSeq in sorted(checkPoints.keys()):
+        #for key in sorted(mydict.iterkeys()):
+
+            self.AddCheckPoint(checkPoints[strSeq])
+    def SaveCheckPoint(self):
+        if not self.txtCheckPointSeq.text():
+            QMessageBox.question(self,
+                            "CheckPoint Seq Is None",
+                            "Fail to Save,Please input a CheckPoint Seq!",
+                            QMessageBox.Ok )  
+            return
+        if not self.cmbVariableName.currentText():
+            QMessageBox.question(self,
+                            "CheckPoint variable Name Is None",
+                            "Fail to Save,Please select  a variable name!",
+                            QMessageBox.Ok )  
+            return
+        if not self.txtValue.text():
+            QMessageBox.question(self,
+                            "CheckPoint Value Is None",
+                            "Fail to Save,Please input a CheckPoint Value!",
+                            QMessageBox.Ok )  
+            return
+        checkPoint={
+        "boxName":self.txtCheckPointSeq.text(), 
+        "VariableName":self.cmbVariableName.currentText(), 
+        "Value":self.txtValue.text()}
+        self.UpdateCheckPoint(checkPoint)
+    def AddCheckPoint(self, checkPoint):
+        rowCount=self.VariablesWidget.rowCount()
         
+        row_index=self.VariablesWidget.rowCount()
+        self.VariablesWidget.insertRow(row_index)
+        row_index=row_index
+        self.VariablesWidget.setItem(row_index, 0, QTableWidgetItem( checkPoint["boxName"] , 0))        
+        self.VariablesWidget.setItem(row_index, 1, QTableWidgetItem( checkPoint["VariableName"] , 0))        
+        self.VariablesWidget.setItem(row_index, 2, QTableWidgetItem( checkPoint["Value"] , 0))
+        
+    def UpdateCheckPoint(self, checkPoint):        
+        rowCount=self.VariablesWidget.rowCount()
+        for row_index in range(rowCount):
+            if self.VariablesWidget.item(row_index, 0).text()== checkPoint["boxName"] :     
+                self.VariablesWidget.setItem(row_index, 1, QTableWidgetItem( checkPoint["VariableName"] , 0))        
+                self.VariablesWidget.setItem(row_index, 2, QTableWidgetItem( checkPoint["Value"] , 0))
+          #ui->tableWidget->resizeRowToContents(curRow)
+                return
+        self.AddCheckPoint(checkPoint)
+    def RemoveCheckPoint(self):
+        if not self.txtCheckPointSeq.text():
+            QMessageBox.question(self,
+                            "CheckPoint Seq Is None",
+                            "Fail to Remove,Please input a CheckPoint Seq!",
+                            QMessageBox.Ok )  
+            return
+        rowCount=self.VariablesWidget.rowCount()
+        for row_index in range(rowCount):
+            if self.VariablesWidget.item(row_index, 0).text()== checkPoint["boxName"] :     
+                VariablesWidget.removeRow(row_index)
+                return
+    def GetCheckPoints(self):
+        rowCount=self.VariablesWidget.rowCount()
+        checkPoints={}
+        for row_index in range(rowCount):
+            strCheckPointSeq=self.VariablesWidget.item(row_index, 0).text() 
+            if strCheckPointSeq:     
+                checkPoints[strCheckPointSeq]={  
+        "boxName":strCheckPointSeq, 
+        "VariableName":self.VariablesWidget.item(row_index, 1).text() , 
+        "Value":self.VariablesWidget.item(row_index, 2).text() }
+        return checkPoints
+    def VariablesWidgetDoubleClicked(self, item):
+        self.txtCheckPointSeq.setText(self.VariablesWidget.item(item.row(), 0).text()) 
+        self.cmbVariableName.setCurrentIndex(self.dicVariableList.index(self.VariablesWidget.item(item.row(), 1).text()))       
+        self.txtValue.setText(self.VariablesWidget.item(item.row(), 2).text())
+        
+    
 
     def accept(self):
         iEditLine=self.ediEquation.document().lineCount(); 
@@ -144,19 +290,19 @@ class LocationItemDlg(QDialog):
                             "Fail to Accept,Please Input a Name for the Location!",
                             QMessageBox.Ok )  
             return;        
-        if self.item is None:
-            if (tmpLocationName in parentFrom.dicText.keys()):
+        if self.item is None: 
+            if (tmpLocationName in self.parentForm.dicText.keys()):
                 QMessageBox.question(self,
                             "Location Name Exists",
                             "Fail to Accept,Please Change a Name for the Location due to there is already a location named "+tmpLocationName +"!",
                             QMessageBox.Ok )  
                 return
-            self.item = LocationItem("",equation,self.txtGuard.text(), self.position, self.isInitial.isChecked(), self.isEnd.isChecked(), self.isNameAbove.isChecked(), self.scene, self.parentForm)
+            self.item = LocationItem("",equation,self.txtInvariant.text(), self.position, self.isInitial.isChecked(), self.isEnd.isChecked(), self.isNameAbove.isChecked(), self.scene, self.parentForm)
         if (self.item.boxName==""):
             self.item.boxName=self.txtLocationName.text()
         else:
             if (self.item.boxName!=self.txtLocationName.text()):
-                if (tmpLocationName in parentFrom.dicText.keys()):
+                if (tmpLocationName in self.parentForm.dicText.keys()):
                     QMessageBox.question(self,
                             "Location Name Exists",
                             "Fail to Accept,Please Change a Name for the Location due to there is already a location named "+tmpLocationName +"!",
@@ -165,10 +311,11 @@ class LocationItemDlg(QDialog):
                 self.parentForm.dicText.pop(self.item.boxName)
         self.parentForm.dicText[self.item.boxName]=self.item
         self.item.equation=equation
-        self.item.guard=self.txtGuard.text()
+        self.item.invariant=self.txtInvariant.text()
         self.item.isInitial=self.isInitial.isChecked()
         self.item.isEnd=self.isEnd.isChecked()
         self.item.isNameAbove=self.isNameAbove.isChecked()
+        self.item.checkPoints=self.GetCheckPoints()
         self.item.update() 
         self.parentForm.setDirty()
         QDialog.accept(self)
@@ -182,20 +329,32 @@ class LocationItemDlg(QDialog):
             iHeight=0.2*(iEditLine-4)+1;
             self.figEquation.set_size_inches(5, iHeight)
         self.figEquation.clf()
+        SympyLines=[]
         for i in range(iEditLine):
-            strData=self.ediEquation.document().findBlockByLineNumber(i).text();            
-            self.figEquation.text(0.1,iHeight-0.2*(i+1), strData, fontsize=10)
+            strData=self.ediEquation.document().findBlockByLineNumber(i).text()     
+            try:
+            #if True:
+                if '=' in strData:
+                    strLeftEquation, strRightEquation=FormatParseLatex.formatParseLatex4Design(strData)
+                    SympyLines.append('='.join([strLeftEquation,  strRightEquation]))
+                    self.figEquation.text(0.1,iHeight-0.2*(i+1), strData, fontsize=10)
+            except Exception as e  : 
+            #else:
+                SympyLines.append(strData+"Error:"+str(e))
+                print (str(e))
+                    
+        self.ediSymEquation.setPlainText("\n".join(SympyLines))
         self.canvEquation.draw()
-        self.figGuard.clf()
-        self.figGuard.text(0.1,0.2, self.txtGuard.text(),family="Consolas",  fontsize=16)
-        self.canvGuard.draw()
+        #self.figInvariant.clf()
+        #self.figInvariant.text(0.1,0.2, self.txtInvariant.text(),family="Consolas",  fontsize=16)
+        #self.canvInvariant.draw()
         
  
 
 
 
 class LocationItem(QGraphicsItem): 
-    def __init__(self, boxName, equation, guard, position, isInitial, isEnd, isNameAbove, scene,parentForm,size=None, style=Qt.SolidLine,
+    def __init__(self, boxName, equation, invariant, position, isInitial, isEnd, isNameAbove, checkPoints, scene,parentForm,size=None, style=Qt.SolidLine,
                   matrix=QTransform()):  
         super(LocationItem, self).__init__()
         self.setFlags(QGraphicsItem.ItemIsSelectable|
@@ -205,12 +364,16 @@ class LocationItem(QGraphicsItem):
         if isinstance(boxName, dict ):            
             equation=boxName["equation"]
             position= QPointF(boxName["position"][0], boxName["position"][1])
-            guard=boxName["guard"]
+            invariant=boxName["invariant"]
             isInitial=boxName["isInitial"]    
             if "isEnd" in boxName.keys():
                 isEnd=boxName["isEnd"]
             else:
                 isEnd=False
+            if "checkPoints" in boxName.keys():
+                checkPoints=boxName['checkPoints']
+            else:
+                checkPoints={}
             isNameAbove=boxName["isNameAbove"]
             size=QSizeF(boxName["size"][0], boxName["size"][1]) 
             boxName=boxName["boxName"]
@@ -222,13 +385,14 @@ class LocationItem(QGraphicsItem):
             rect = QRectF(QPointF(-10 * PointSize, -PointSize),size)
         self.parentForm=parentForm
         self.equation=equation
-        self.guard=guard
+        self.invariant=invariant
         self.isInitial=isInitial
         self.isEnd=isEnd
         self.isNameAbove=isNameAbove
         self.boxName=boxName
+        self.checkPoints=checkPoints
         self.imageEquation=self.getQImage4Equation()
-        self.imageGuard=self.getQImage4Guard()   
+        self.imageInvariant=self.getQImage4Invariant()   
         self.rect = rect
         self.style = style
         self.setPos(position)
@@ -248,27 +412,39 @@ class LocationItem(QGraphicsItem):
         if (iEditLine>4):
             iHeight=0.2*(iEditLine-4)+1;
         
-        guardFig = Figure(figsize=(2.5, iHeight))        
-        canvas  = FigureCanvas(guardFig)  
-        
+        InvariantFig = Figure(figsize=(2.5, iHeight))        
+        canvas  = FigureCanvas(InvariantFig)  
+        SympyLines=[]
         for i in range(iEditLine):
-            strData=self.equation[i]         
-            try:  
-                guardFig.text(0.1,iHeight-0.2*(i+1), strData,family="Consolas",  fontsize=10)       
-            except:
-                pass
+            strData=self.equation[i]   
+            try:
+                if '=' in strData:
+                    str1=strData.split('=')
+                    leftEquation=str1[0].replace('$', '')
+                    rightEquation=str1[1].replace('$', '')
+                    strLeftEquation=str( process_sympy(leftEquation))
+                    strRightEquation=str( process_sympy(rightEquation)   )                     
+                    SympyLines.append('='.join([strLeftEquation,  strRightEquation]))
+                    InvariantFig.text(0.1,iHeight-0.2*(i+1), strData, fontsize=10)
+            except Exception as e:
+                SympyLines.append(strData+"Error:"+str(e))
+            #    print (str(e))     
+            #try:  
+            #    InvariantFig.text(0.1,iHeight-0.2*(i+1), strData,family="Consolas",  fontsize=10)       
+            #except:
+            #    pass
         canvas.draw()
         size = canvas.size()
         width, height = size.width(), size.height()
         im = QImage(canvas.buffer_rgba(), width, height, QImage.Format_ARGB32)
         return im
         
-    def getQImage4Guard(self):
-        guardFig = Figure(figsize=(2.5, 0.4))        
-        canvas  = FigureCanvas(guardFig)   
-        strData=self.guard      
+    def getQImage4Invariant(self):
+        InvariantFig = Figure(figsize=(2.5, 0.4))        
+        canvas  = FigureCanvas(InvariantFig)   
+        strData=self.invariant      
         try:
-            guardFig.text(0.1,0.3,  strData,family="Consolas",  fontsize=10)       
+            InvariantFig.text(0.1,0.3,  strData,family="Consolas",  fontsize=10)       
         except:
             pass
         canvas.draw()
@@ -278,8 +454,9 @@ class LocationItem(QGraphicsItem):
         return im
          
     def toSaveJson(self):
-        data={"type":"Location", "boxName":self.boxName, "equation":self.equation,"guard":self.guard, 
-        "position":(self.x(), self.y()) ,   "isInitial":self.isInitial, "isNameAbove":self.isNameAbove, 
+        data={"type":"Location", "boxName":self.boxName, "equation":self.equation,"invariant":self.invariant, 
+        "position":(self.x(), self.y()) ,   "isInitial":self.isInitial,  "isEnd":self.isEnd, "isNameAbove":self.isNameAbove, 
+        "checkPoints":self.checkPoints, 
         "size":(self.rect.width(), self.rect.height()) ,  "rotation":self.rotation()}
         return data
         #Json.dumps(data)
@@ -369,20 +546,30 @@ class LocationItem(QGraphicsItem):
     @equation.setter
     def equation(self, value):
         if not isinstance(value, list ):
-            raise ValueError('Guard must be a list!')        
+            raise ValueError('Invariant must be a list!')        
         self._equation = value        
         self.imageEquation=self.getQImage4Equation()
         
     @property
-    def guard(self):
-        return self._guard
+    def checkPoints(self):
+        return self._checkPoints
 
-    @guard.setter
-    def guard(self, value):
+    @checkPoints.setter
+    def checkPoints(self, value):
+        if not isinstance(value, dict ):
+            raise ValueError('checkPoints must be a dict!')        
+        self._checkPoints = value         
+        
+    @property
+    def invariant(self):
+        return self._invariant
+
+    @invariant.setter
+    def invariant(self, value):
         if not isinstance(value, str ):
-            raise ValueError('Guard must be an string!')        
-        self._guard = value        
-        self.imageGuard=self.getQImage4Guard()
+            raise ValueError('Invariant must be an string!')        
+        self._invariant = value        
+        self.imageInvariant=self.getQImage4Invariant()
     def parentWidget(self):
         return self.scene().views()[0]
 
@@ -401,16 +588,20 @@ class LocationItem(QGraphicsItem):
         painter.drawRect(self.boundingRect())
         painter.drawImage(self.rect, self.imageEquation)
         pointText=QPointF(self.rect.x(), self.rect.y()-40)
-        rectGuard=QRectF(self.rect.x(), self.rect.y()-35, self.rect.width(), 30)
+        rectInvariant=QRectF(self.rect.x(), self.rect.y()-35, self.rect.width(), 30)
+        pointInvariant=QPointF(self.rect.x(), self.rect.y()-25 )
         if not self.isNameAbove:            
             pointText=QPointF(self.rect.x(), self.rect.y()+self.rect.height()+50)
-            rectGuard=QRectF(self.rect.x(), self.rect.y() +self.rect.height()+5, self.rect.width(), 30)
+            rectInvariant=QRectF(self.rect.x(), self.rect.y() +self.rect.height()+5, self.rect.width(), 30)
+            pointInvariant=QPointF(self.rect.x(), self.rect.y()+self.rect.height()+15)
         painter.drawText(pointText,  self.boxName)
+        painter.drawText(pointInvariant,  self.invariant)
         #painter.drawText(self.rect.x(), self.rect.y()-30, "1-" +self.boxName)
         #painter.drawText(self.rect.x(), self.rect.y()-10, "2-" + self.boxName)
         #painter.drawText(self.rect.x(), self.rect.y()+10, "3-" + self.boxName)
         #painter.drawText(self.rect.x(), self.rect.y()+self.rect.height()+30, "4-" +  self.boxName)
-        painter.drawImage(rectGuard, self.imageGuard)
+       
+       #painter.drawImage(rectInvariant, self.imageInvariant)
         
 
     def itemChange(self, change, variant):
@@ -499,12 +690,12 @@ class LocationItemPixmap(QGraphicsPixmapItem):
         if (iEditLine>4):
             iHeight=0.2*(iEditLine-4)+1;
         
-        guardFig = Figure(figsize=(5, iHeight))        
-        canvas  = FigureCanvas(guardFig)  
+        InvariantFig = Figure(figsize=(5, iHeight))        
+        canvas  = FigureCanvas(InvariantFig)  
         
         for i in range(iEditLine):
             strData=text[i]            
-            guardFig.text(0.1,iHeight-0.2*(i+1), strData, fontsize=10)       
+            InvariantFig.text(0.1,iHeight-0.2*(i+1), strData, fontsize=10)       
         canvas.draw()
         size = canvas.size()
         width, height = size.width(), size.height()
@@ -540,14 +731,14 @@ class LocationItemPixmap(QGraphicsPixmapItem):
     
     
     @property
-    def guard(self):
-        return self._guard
+    def Invariant(self):
+        return self._invariant
 
-    @guard.setter
-    def guard(self, value):
+    @Invariant.setter
+    def Invariant(self, value):
         if not isinstance(value, str ):
-            raise ValueError('Guard must be an string!')        
-        self._guard = value
+            raise ValueError('Invariant must be an string!')        
+        self._invariant = value
         
     def boundingRect(self) :  
         height=super().boundingRect().height()
@@ -646,14 +837,14 @@ class LocationItemText(QGraphicsTextItem):
     
     
     @property
-    def guard(self):
-        return self._guard
+    def Invariant(self):
+        return self._invariant
 
-    @guard.setter
-    def guard(self, value):
+    @Invariant.setter
+    def Invariant(self, value):
         if not isinstance(value, str ):
-            raise ValueError('Guard must be an string!')        
-        self._guard = value
+            raise ValueError('Invariant must be an string!')        
+        self._invariant = value
         
     def boundingRect(self) :  
         height=super().boundingRect().height()
