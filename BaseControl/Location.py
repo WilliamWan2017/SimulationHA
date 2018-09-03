@@ -297,7 +297,7 @@ class LocationItemDlg(QDialog):
                             "Fail to Accept,Please Change a Name for the Location due to there is already a location named "+tmpLocationName +"!",
                             QMessageBox.Ok )  
                 return
-            self.item = LocationItem("",equation,self.txtInvariant.text(), self.position, self.isInitial.isChecked(), self.isEnd.isChecked(), self.isNameAbove.isChecked(), self.scene, self.parentForm)
+            self.item = LocationItem("",equation,self.txtInvariant.text(), self.position, self.isInitial.isChecked(), self.isEnd.isChecked(), self.isNameAbove.isChecked(), {}, self.scene, self.parentForm)
         if (self.item.boxName==""):
             self.item.boxName=self.txtLocationName.text()
         else:
