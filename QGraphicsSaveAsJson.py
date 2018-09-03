@@ -711,6 +711,6 @@ class MainForm(QDialog):
 app = QApplication(sys.argv)
 form = MainForm()
 rect = QApplication.desktop().availableGeometry()
-form.resize(int(rect.width() * 0.6), int(rect.height() * 0.9))
+form.resize(int(rect.width() * 0.9), int(rect.height() * 0.9))
 form.show()
 app.exec_()
