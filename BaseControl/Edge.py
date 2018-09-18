@@ -17,8 +17,10 @@ from PyQt5.QtWidgets import (QApplication, QDialog, QFrame,
                              QStyle, QTextEdit, QVBoxLayout, QLineEdit)
 from PyQt5.QtGui import QFont,QCursor,QFontMetrics,QTransform,QPainter,QPen,QPixmap,QBrush, QImage
 from PyQt5.QtPrintSupport import QPrinter,QPrintDialog
-adjustY=10
-adjustX=15
+adjustY1=10
+adjustX1=15
+adjustY2=10
+adjustX2=15
 MAC = True
 try:
     from PyQt5.QtGui import qt_mac_set_native_menubar
@@ -260,8 +262,8 @@ class EdgeItem(QGraphicsLineItem):
         Dirty = True 
     def drawLine2Self(self):
         haveEdges=[strDirection   for strDirection in self.fromLocation.edges.values()]
-        self.arcx1=self.fromLocation.x()-self.fromLocation.rect.width()/2-40#-30
-        self.arcy1=self.fromLocation.y()# -50#+self.fromLocation.rect.height*0.3 
+        self.arcx1=self.fromLocation.x()+self.fromLocation.rect.x()-40#-30
+        self.arcy1=self.fromLocation.y()+self.fromLocation.rect.y()# -50#+self.fromLocation.rect.height*0.3 
         self.minAngle=90 
         x1=self.arcx1+33
         y1=self.arcy1+80
@@ -270,9 +272,9 @@ class EdgeItem(QGraphicsLineItem):
         self.arcTextx=self.arcx1
         self.arcTexty=self.arcy1+40
         self.spanAngle=180 
-        if "top" not in haveEdges and self.fromLocation.isNameAbove:
-            self.arcx1=self.fromLocation.x()-40
-            self.arcy1=self.fromLocation.y() -40-adjustY
+        if "top" not in haveEdges and self.fromLocation.isNameAbove==False:
+            self.arcx1=self.fromLocation.x()+self.fromLocation.rect.x()+10
+            self.arcy1=self.fromLocation.y() +self.fromLocation.rect.y()-40 
             x1=self.arcx1+80
             y1=self.arcy1+40-7
             x2=self.arcx1+80
@@ -281,8 +283,8 @@ class EdgeItem(QGraphicsLineItem):
             self.arcTextx=self.arcx1+40
             self.arcTexty=self.arcy1 
         elif "left" not in haveEdges:
-            self.arcx1=self.fromLocation.x()-self.fromLocation.rect.width()/2-40#-30
-            self.arcy1=self.fromLocation.y()# -50#+self.fromLocation.rect.height*0.3 
+            self.arcx1=self.fromLocation.x()+self.fromLocation.rect.x()-40#-30
+            self.arcy1=self.fromLocation.y()+self.fromLocation.rect.y()+10# -50#+self.fromLocation.rect.height*0.3 
             self.minAngle=90 
             x1=self.arcx1+33
             y1=self.arcy1+80
@@ -290,9 +292,9 @@ class EdgeItem(QGraphicsLineItem):
             y2=self.arcy1+80            
             self.arcTextx=self.arcx1
             self.arcTexty=self.arcy1+40
-        elif "bottom" not in haveEdges  and self.fromLocation.isNameAbove==False:
-            self.arcx1=self.fromLocation.x()-40
-            self.arcy1=self.fromLocation.y()+self.fromLocation.rect.height()-adjustY-40
+        elif "bottom" not in haveEdges  and self.fromLocation.isNameAbove:
+            self.arcx1=self.fromLocation.x()+self.fromLocation.rect.x()+10
+            self.arcy1=self.fromLocation.y()+self.fromLocation.rect.y()+self.fromLocation.rect.height() -40
             self.minAngle=180         
             x1=self.arcx1+80
             y1=self.arcy1+7+40
@@ -301,12 +303,12 @@ class EdgeItem(QGraphicsLineItem):
             self.arcTextx=self.arcx1+40
             self.arcTexty=self.arcy1 +80
         elif "right" not in haveEdges:
-            self.arcx1=self.fromLocation.x()+self.fromLocation.rect.width()/2-25-adjustX #-30
-            self.arcy1=self.fromLocation.y()# -50#+self.fromLocation.rect.height*0.3 
+            self.arcx1=self.fromLocation.x()+self.fromLocation.rect.x()+ self.fromLocation.rect.width()-40  #-30
+            self.arcy1=self.fromLocation.y()+self.fromLocation.rect.y()+10# -50#+self.fromLocation.rect.height*0.3 
             self.minAngle=270 
-            x1=self.arcx1+7+25+adjustX
+            x1=self.arcx1+7+25+adjustX1
             y1=self.arcy1+80
-            x2=self.arcx1+25+adjustX
+            x2=self.arcx1+25+adjustX1
             y2=self.arcy1+80            
             self.arcTextx=self.arcx1+80
             self.arcTexty=self.arcy1+40
@@ -347,22 +349,27 @@ class EdgeItem(QGraphicsLineItem):
         
     
     def resetLine(self):
+        self.direction=""
         if self.fromLocation==None and  self.toLocation==None:
             return 
         
         if  self.fromLocation==None:            
             #self.toLocation.edges[self.boxName]="left"
-            x2= self.toLocation.x()
-            y2= self.toLocation.y()+self.toLocation.rect.height()*0.3
+            x2= self.toLocation.x()+self.toLocation.rect.x() 
+            y2= self.toLocation.y()+self.toLocation.rect.x() +self.toLocation.rect.height()*0.3
             x1=x2-30
             y1=y2
         elif self.toLocation==None:
             #self.fromLocation.edges[self.boxName]="right"
-            x1= self.fromLocation.x()+self.fromLocation.rect.width()
-            y1= self.fromLocation.y()+self.fromLocation.rect.height()*0.3
+            x1= self.fromLocation.x()+self.fromLocation.rect.x()+self.fromLocation.rect.width()
+            y1= self.fromLocation.y()+self.fromLocation.rect.y()+self.fromLocation.rect.height()*0.3
             x2=x1+30
             y2=y1 
-        else:
+        else: 
+            adjustX1=self.fromLocation.x()+self.fromLocation.rect.x() 
+            adjustX2=self.toLocation.x()+self.toLocation.rect.x()
+            adjustY1=self.fromLocation.y()+self.fromLocation.rect.y() 
+            adjustY2=self.toLocation.y()+self.toLocation.rect.y()
             if self.fromLocation.boxName==self.toLocation.boxName:
                 self.drawLine2Self()
                 self.fromLocation.edgeToSelf=self.boxName;
@@ -378,72 +385,70 @@ class EdgeItem(QGraphicsLineItem):
                     
                     self.fromLocation.edges[self.boxName]="right"            
                     self.toLocation.edges[self.boxName]="left"
-                    x1= self.fromLocation.x()+self.fromLocation.rect.width()/2
-                    y1= self.fromLocation.y()+self.fromLocation.rect.height()*0.33 -adjustY    
-                    x2= self.toLocation.x()-self.toLocation.rect.width()/2
-                    y2= self.toLocation.y()+self.toLocation.rect.height()*0.33-adjustY
+                    x1= self.fromLocation.rect.width()+adjustX1
+                    y1= self.fromLocation.rect.height()*0.4 +adjustY1    
+                    x2=  adjustX2
+                    y2= self.toLocation.rect.height()*0.4+adjustY2
                 else:        
                     self.direction="x<"                       
                     self.fromLocation.edges[self.boxName]="left"            
                     self.toLocation.edges[self.boxName]="right"
-                    x1= self.fromLocation.x()-self.fromLocation.rect.width()/2
-                    y1= self.fromLocation.y()+self.fromLocation.rect.height()*0.67 -adjustY       
-                    x2= self.toLocation.x()+self.toLocation.rect.width()/2
-                    y2= self.toLocation.y()+self.toLocation.rect.height()*0.67-adjustY
+                    x1=  adjustX1 
+                    y1=  self.fromLocation.rect.height()*0.6 +adjustY1       
+                    x2=  self.toLocation.rect.width() +adjustX2 
+                    y2=  self.toLocation.rect.height()*0.6+adjustY2
             elif ((abs(x_diff)<x_diff_standand)):
                 if (y_diff>0):
                     self.direction="y>"   
                     
                     self.fromLocation.edges[self.boxName]="bottom"            
                     self.toLocation.edges[self.boxName]="top"
-                    x1= self.fromLocation.x()-self.fromLocation.rect.width()*0.25          
-                    y1= self.fromLocation.y()+self.fromLocation.rect.height()-adjustY
-                    x2= self.toLocation.x()-self.toLocation.rect.width()*0.25          
-                    y2= self.toLocation.y()-adjustY
+                    x1=  self.fromLocation.rect.width()*0.4     +adjustX1     
+                    y1=  self.fromLocation.rect.height()+adjustY1
+                    x2=  self.toLocation.rect.width()*0.4     +adjustX2    
+                    y2=  adjustY2
                 else:
-                    self.direction="y<"      
-       
+                    self.direction="y<"             
                     self.fromLocation.edges[self.boxName]="top"            
                     self.toLocation.edges[self.boxName]="bottom"             
-                    x1= self.fromLocation.x()+self.fromLocation.rect.width()*0.25
-                    y1= self.fromLocation.y()-adjustY
-                    x2= self.toLocation.x()+self.toLocation.rect.width()*0.25       
-                    y2= self.toLocation.y() +self.toLocation.rect.height()-adjustY
+                    x1=self.fromLocation.rect.width()*0.6+adjustX1
+                    y1= adjustY1
+                    x2= self.toLocation.rect.width()*0.6+adjustX2
+                    y2= self.toLocation.rect.height()+adjustY2
             else:
                 if (x_diff>0) and (y_diff>0):
                     self.direction="xy>"         
                     self.fromLocation.edges[self.boxName]="right"            
                     self.toLocation.edges[self.boxName]="top"         
-                    x1=self.fromLocation.x()+self.fromLocation.rect.width()/2
-                    y1=self.fromLocation.y()+self.fromLocation.rect.height()*0.87-adjustY
-                    x2=self.toLocation.x()-self.toLocation.rect.width()*0.37
-                    y2=self.toLocation.y()-adjustY
+                    x1=self.fromLocation.rect.width()+adjustX1
+                    y1=self.fromLocation.rect.height()*0.8+adjustY1
+                    x2=self.toLocation.rect.width()*0.2+adjustX2
+                    y2=adjustY2
                 elif ((x_diff<0) and (y_diff<0)):                
-                    self.direction="xy<"            
-             
+                    self.direction="xy<"                         
                     self.fromLocation.edges[self.boxName]="left"            
                     self.toLocation.edges[self.boxName]="bottom"                
-                    x1=self.fromLocation.x()-self.fromLocation.rect.width()/2
-                    y1=self.fromLocation.y()+self.fromLocation.rect.height()*0.13-adjustY
-                    x2=self.toLocation.x()+self.toLocation.rect.width()*0.37
-                    y2=self.toLocation.y()+self.toLocation.rect.height()-adjustY 
+                    x1= adjustX1
+                    y1= self.fromLocation.rect.height()*0.2+adjustY1
+                    x2= self.toLocation.rect.width()*0.8+adjustX2
+                    y2= self.toLocation.rect.height()+adjustY2 
                 elif (x_diff>0) and (y_diff<0):
-                    self.direction="x>y<"                   
-                    
+                    self.direction="x>y<"                                       
                     self.fromLocation.edges[self.boxName]="top"            
                     self.toLocation.edges[self.boxName]="left"          
-                    x1=self.fromLocation.x()+self.fromLocation.rect.width()*0.37
-                    y1=self.fromLocation.y()-adjustY
-                    x2=self.toLocation.x()-self.fromLocation.rect.width()*0.5
-                    y2=self.toLocation.y()+self.toLocation.rect.height()*0.87-adjustY
+                    x1= self.fromLocation.rect.width()*0.8+adjustX1
+                    y1= adjustY1
+                    x2= adjustX2
+                    y2= self.toLocation.rect.height()*0.8+adjustY2
                 else:
                     self.direction="x<y>"            
                     self.fromLocation.edges[self.boxName]="bottom"            
                     self.toLocation.edges[self.boxName]="right"             
-                    x1=self.fromLocation.x() -self.fromLocation.rect.width()*0.37
-                    y1=self.fromLocation.y()+self.fromLocation.rect.height()-adjustY
-                    x2=self.toLocation.x()+self.toLocation.rect.width()/2
-                    y2=self.toLocation.y()+self.toLocation.rect.height()*0.13    -adjustY            
+                    x1= self.fromLocation.rect.width()*0.2+adjustX1
+                    y1= adjustY1+self.fromLocation.rect.height()
+                    x2= adjustX2+self.toLocation.rect.width()
+                    y2= self.toLocation.rect.height()*0.2    +adjustY2  
+        self.direction=self.direction+" fLX:"+str(self.fromLocation.x())+",fLrx"+str(self.fromLocation.rect.x())+",fLrw"+str(self.fromLocation.rect.width())+",Lx"+str(x1)
         self.source = QPointF(x1, y1)
         self.dest = QPointF(x2, y2)         
         self.line = QLineF(self.source, self.dest)
@@ -538,7 +543,7 @@ class EdgeItem(QGraphicsLineItem):
         ptexty-=5
         ptextx-=len(self.boxName)*3
         
-        #Painter.drawText(QPointF(ptextx, ptexty+20), self.direction)
+        #QPainter.drawText(QPointF(ptextx, ptexty+20), self.direction)
         # setBrush
         brush = QBrush()
         brush.setColor(Qt.black)
