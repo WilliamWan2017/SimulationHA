@@ -103,3 +103,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+*.e4q
+*.e6t
+*.e4q
