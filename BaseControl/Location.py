@@ -185,7 +185,7 @@ class LocationItemDlg(QDialog):
          
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject) 
-        self.resize(800, 900)
+        self.resize(900, 1000)
         #self.buttonBox.button(QDialogButtonBox.Reset).clicked.connect(self.apply)
 
         self.setWindowTitle("{0} Location Item".format(
@@ -576,6 +576,10 @@ class LocationItem(QGraphicsItem):
 
     def boundingRect(self):
         return self.rect.adjusted(-1, -1,  1, 1)
+  
+  
+    def boundingRect2(self):
+        return self.rect.adjusted(0, 0,  0, 0)
 
 
     def paint(self, painter, option, widget): 
@@ -585,7 +589,8 @@ class LocationItem(QGraphicsItem):
         if option.state & QStyle.State_Selected:
             pen.setColor(Qt.blue)
         painter.setPen(pen)
-        painter.drawRect(self.boundingRect())
+      #  painter.drawRect(self.boundingRect())
+        painter.drawRect(self.boundingRect2())
         painter.drawImage(self.rect, self.imageEquation)
         pointText=QPointF(self.rect.x(), self.rect.y()-40)
         rectInvariant=QRectF(self.rect.x(), self.rect.y()-35, self.rect.width(), 30)
