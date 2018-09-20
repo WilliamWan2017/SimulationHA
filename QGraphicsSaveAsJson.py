@@ -17,8 +17,8 @@ from PyQt5.QtWidgets import (QApplication, QDialog, QFrame,
                              QGraphicsItem, QGraphicsPixmapItem,QGraphicsLineItem,    
                              QGraphicsScene, QGraphicsTextItem, QGraphicsView, QGridLayout,
                              QHBoxLayout, QLabel, QMenu, QMessageBox,QPushButton, QSpinBox,
-                             QStyle, QTextEdit, QVBoxLayout, QLineEdit, QComboBox)
-from PyQt5.QtGui import QFont,QCursor,QFontMetrics,QTransform,QPainter,QPen,QPixmap,QBrush
+                             QStyle, QTextEdit, QVBoxLayout, QLineEdit, QComboBox, QShortcut,)
+from PyQt5.QtGui import QFont,QCursor,QFontMetrics,QTransform,QPainter,QPen,QPixmap,QBrush, QKeySequence
 from PyQt5.QtPrintSupport import QPrinter,QPrintDialog
 from PyQt5.QtWidgets import QTableWidget, QAbstractItemView, QTableWidgetItem, QWidget, QHBoxLayout, \
     QApplication
@@ -94,7 +94,7 @@ class MainForm(QDialog):
                 ("QLineEdit", "Current HA Name")  ,   
                 ("QComboBox", "HA Name List"),                 
                 ("QLineEdit", "Current Model Name")  , 
-                ("&Switch HA", self.switchHA)  ,        
+                ("S&witch HA", self.switchHA)  ,        
                 ("&Delete HA", self.deleteHA), 
                 ("&Copy And New HA", self.copyHA) 
                 ):
@@ -123,6 +123,9 @@ class MainForm(QDialog):
                     button.setFocusPolicy(Qt.NoFocus)
                 if slot is not None:
                     button.clicked.connect(slot)
+                #if shortcutKey:
+                #    shortcut = QShortcut(QKeySequence(shortcutKey), self) 
+                #   shortcut.activated.connect(slot) 
                 if text == "&Align":
                     menu = QMenu(self)
                     for text, arg in (
@@ -204,6 +207,7 @@ class MainForm(QDialog):
         
         #self.currentProject["Models"]["NoName"]=self.dicModel
         self.currentHA=None
+
     def txtChanged(self):
         self.setDirty()
         
