@@ -1,2 +1,5 @@
 pip install msgpack --user
 pip install antlr4-python3-runtime --user
+
+run command:
+python QGraphicsSaveAsJson.py
