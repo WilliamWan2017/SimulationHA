@@ -85,7 +85,7 @@ class EdgeItemDlg(QDialog):
         self.buttonLocation = QDialogButtonBox(QDialogButtonBox.Ok|
                                           QDialogButtonBox.Cancel)
         self.buttonLocation.button(QDialogButtonBox.Ok).setEnabled(False)
-        btnDelete=QPushButton("Delete Edge")
+        btnDelete=QPushButton("&Delete Edge")
         btnDelete.clicked.connect(self.delete)
       
       

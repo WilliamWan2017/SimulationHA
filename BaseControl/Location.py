@@ -45,45 +45,45 @@ class LocationItemDlg(QDialog):
         self.ediEquation = QTextEdit()         
         self.ediEquation.setAcceptRichText(True)
         self.ediEquation.setTabChangesFocus(True)
-        lblEquation= QLabel("&Equations:")
+        lblEquation= QLabel("Equations:")
         lblEquation.setBuddy(self.ediEquation)
          
         self.txtLocationName = QLineEdit()           
-        lblLocationName = QLabel("&LocationName:")
+        lblLocationName = QLabel("LocationName:")
         lblLocationName.setBuddy(self.txtLocationName)
         
         self.isNameAbove=QCheckBox()
-        lblIsNameAbove=QLabel("&IsNameAbove")
+        lblIsNameAbove=QLabel("IsNameAbove")
         lblIsNameAbove.setBuddy(self.isNameAbove)
         
         self.isInitial=QCheckBox()
-        lblIsInitial=QLabel("&IsInitail")
+        lblIsInitial=QLabel("IsInitail")
         lblIsInitial.setBuddy(self.isInitial)
         
         self.isEnd=QCheckBox()
-        lblIsEnd=QLabel("&isEnd")
+        lblIsEnd=QLabel("IsEnd")
         lblIsEnd.setBuddy(self.isEnd)
         
         self.txtInvariant = QLineEdit()           
-        lblInvariant = QLabel("&Invariant:")
+        lblInvariant = QLabel("Invariant:")
         lblInvariant.setBuddy(self.txtInvariant)
         
         self.figEquation = Figure(figsize=(3, 1))        
         self.canvEquation  = FigureCanvas(self.figEquation) 
         
-        lblCanvEquation = QLabel("&Format(Equations):")
+        lblCanvEquation = QLabel("Format(Equations):")
         lblCanvEquation.setBuddy(self.canvEquation)
         
         self.ediSymEquation = QTextEdit()         
         self.ediSymEquation.setAcceptRichText(True)
         self.ediSymEquation.setTabChangesFocus(False)
-        lblSymEquation= QLabel("&Sympy(Equations):")
+        lblSymEquation= QLabel("Sympy(Equations):")
         lblSymEquation.setBuddy(self.ediSymEquation)
        
        
        
         self.txtCheckPointSeq = QLineEdit()           
-        lblCheckPointSeq = QLabel("&CheckPoint Seq:")
+        lblCheckPointSeq = QLabel("CheckPoint Seq:")
         lblCheckPointSeq.setBuddy(self.txtCheckPointSeq)
         
         
@@ -91,12 +91,12 @@ class LocationItemDlg(QDialog):
         self.dicVariableList=[ key for key in parent.dicVariable.keys() if parent.dicVariable[key].isConstant ==False]
          
         self.cmbVariableName.addItems(self.dicVariableList)
-        lblVariableName = QLabel("&variableName:")
+        lblVariableName = QLabel("variableName:")
         lblVariableName.setBuddy(self.cmbVariableName) 
         
         
         self.txtValue = QLineEdit()           
-        lblValue = QLabel("&Value:")
+        lblValue = QLabel("Value:")
         lblValue.setBuddy(self.txtValue)
         
         btnAddCheckPoint=QPushButton("&Save CheckPoint")

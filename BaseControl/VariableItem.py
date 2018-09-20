@@ -45,24 +45,24 @@ class VariableItemDlg(QDialog):
         self.item = item  
          
         self.txtVariableName = QLineEdit()           
-        lblVariableName = QLabel("&VariableName:")
+        lblVariableName = QLabel("VariableName:")
         lblVariableName.setBuddy(self.txtVariableName)
         
         self.isOutput=QCheckBox()
-        lblIsOutput=QLabel("&IsOutput")
+        lblIsOutput=QLabel("IsOutput")
         lblIsOutput.setBuddy(self.isOutput)
  
         self.isInput=QCheckBox()
-        lblIsInput=QLabel("&IsInput")
+        lblIsInput=QLabel("IsInput")
         lblIsInput.setBuddy(self.isInput)
         
         self.isConstant=QCheckBox()
-        lblIsConstant=QLabel("&isConstant")
+        lblIsConstant=QLabel("IsConstant")
         lblIsConstant.setBuddy(self.isConstant)
                
         
         self.txtInitialValue = QLineEdit()           
-        lblInitialValue = QLabel("&Initial Value:")
+        lblInitialValue = QLabel("Initial Value:")
         lblInitialValue.setBuddy(self.txtInitialValue)
         
         #self.figVariable = Figure(figsize=(5, 0.4))        
@@ -71,7 +71,7 @@ class VariableItemDlg(QDialog):
         #lblCanvVariable = QLabel("&Format(Variable):")
         #lblCanvVariable.setBuddy(self.canvVariable)
         
-        btnDelete=QPushButton("Delete Variable")
+        btnDelete=QPushButton("&Delete Variable")
         btnDelete.clicked.connect(self.delete)
         
         self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok|
