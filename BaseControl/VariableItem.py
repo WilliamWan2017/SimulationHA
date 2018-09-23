@@ -150,6 +150,8 @@ class VariableItemDlg(QDialog):
                          QMessageBox.Ok )  
                     return
                 self.parentForm.dicVariable.pop(self.item.boxName)
+                self.parentForm.renameVariable(self.item.boxName, tmpLocationName)
+                self.item.boxName=tmpLocationName
                 #self.parentForm.addVariableInTable(self.item)
             
         self.parentForm.dicVariable[self.item.boxName]=self.item

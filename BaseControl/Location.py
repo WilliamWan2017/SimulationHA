@@ -308,7 +308,8 @@ class LocationItemDlg(QDialog):
                             "Fail to Accept,Please Change a Name for the Location due to there is already a location named "+tmpLocationName +"!",
                             QMessageBox.Ok )  
                     return
-                self.parentForm.dicText.pop(self.item.boxName)
+                self.parentForm.dicText.pop(self.item.boxName)                
+                self.item.boxName=self.txtLocationName.text()
         self.parentForm.dicText[self.item.boxName]=self.item
         self.item.equation=equation
         self.item.invariant=self.txtInvariant.text()
@@ -330,21 +331,27 @@ class LocationItemDlg(QDialog):
             self.figEquation.set_size_inches(5, iHeight)
         self.figEquation.clf()
         SympyLines=[]
-        for i in range(iEditLine):
-            strData=self.ediEquation.document().findBlockByLineNumber(i).text()     
-            try:
+        try:       
+            for i in range(iEditLine):
+                strData=self.ediEquation.document().findBlockByLineNumber(i).text()     
+                try:  
             #if True:
-                if '=' in strData:
-                    strLeftEquation, strRightEquation=FormatParseLatex.formatParseLatex4Design(strData)
-                    SympyLines.append('='.join([strLeftEquation,  strRightEquation]))
-                    self.figEquation.text(0.1,iHeight-0.2*(i+1), strData, fontsize=10)
-            except Exception as e  : 
+                    if '=' in strData:
+                        strLeftEquation, strRightEquation=FormatParseLatex.formatParseLatex4Design(strData)
+                        SympyLines.append('='.join([strLeftEquation,  strRightEquation]))
+                        self.figEquation.text(0.1,iHeight-0.2*(i+1), strData, fontsize=10)
+       
+                except Exception as e  : 
             #else:
-                SympyLines.append(strData+"Error:"+str(e))
-                print (str(e))
-                    
-        self.ediSymEquation.setPlainText("\n".join(SympyLines))
-        self.canvEquation.draw()
+                    SympyLines.append(strData+"Error:"+str(e))
+                    print (str(e))
+                except:
+                    print("Unexpected error:", sys.exc_info()[0])
+                         
+            self.ediSymEquation.setPlainText("\n".join(SympyLines))
+            self.canvEquation.draw()
+        except:
+            print("")
         #self.figInvariant.clf()
         #self.figInvariant.text(0.1,0.2, self.txtInvariant.text(),family="Consolas",  fontsize=16)
         #self.canvInvariant.draw()

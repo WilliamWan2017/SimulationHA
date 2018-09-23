@@ -203,7 +203,9 @@ class EdgeItemDlg(QDialog):
                             "Fail to Accept,Please Change a Name for this Edge due to there is already an edge named "+tmpLocationName +"!",
                          QMessageBox.Ok )  
                     return
-                self.parentForm.dicLine.pop(self.item.boxName)
+                self.parentForm.dicLine.pop(self.item.boxName)                
+                self.parentForm.renameLine(self.item.boxName, tmpLocationName)
+                self.item.boxName=tmpLocationName
         self.item.fromLocation=self.parentForm.dicText[self.fromLocation.currentText()]
         self.item.toLocation=self.parentForm.dicText[self.toLocation .currentText()]
         self.item.boxName=self.LocationName.text()

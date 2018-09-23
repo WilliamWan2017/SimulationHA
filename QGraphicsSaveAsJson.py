@@ -331,7 +331,12 @@ class MainForm(QDialog):
             if self.EdgeWidget.item(row_index, 0).text()==lineItem.boxName: 
                 self.EdgeWidget.removeRow(row_index)
                 return
-                
+    def renameLine(self, OldName, NewName):       
+        rowCount=self.EdgeWidget.rowCount()
+        for row_index in range(rowCount):
+            if self.EdgeWidget.item(row_index, 0).text()==OldName:
+                self.EdgeWidget.setItem(row_index, 0, QTableWidgetItem( NewName, 0))
+                return           
     def deleteVariable(self, VariableItem):
         self.dicVariable.pop(VariableItem.boxName) 
         rowCount=self.VariablesWidget.rowCount()
@@ -339,7 +344,12 @@ class MainForm(QDialog):
             if self.VariablesWidget.item(row_index, 0).text()==VariableItem.boxName: 
                 self.VariablesWidget.removeRow(row_index)
                 return
-
+    def renameVariable(self, OldName, NewName):       
+        rowCount=self.VariablesWidget.rowCount()
+        for row_index in range(rowCount):
+            if self.VariablesWidget.item(row_index, 0).text()==OldName:                 
+                self.VariablesWidget.setItem(row_index, 0, QTableWidgetItem( NewName, 0))
+                return
     def addVariableInTable(self, variableItem):
         row_index=self.VariablesWidget.rowCount()
         self.VariablesWidget.insertRow(row_index)

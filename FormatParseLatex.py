@@ -49,8 +49,11 @@ def formatSinglePart(strLatex):
     return strEquation
 
 def formatDot(strEquation):
-    p=standardre.compile("(dot\*)([a-zA-Z0-9]*)([^a-zA-Z0-9]*)")
-    return p.sub(r"diff(\2)",strEquation)
+    p=standardre.compile("(dot\*)([e-zE-Z0-9][a-zA-Z0-9]*)([^a-zA-Z0-9])")
+    if standardre.search(p, strEquation ):
+        return p.sub(r"diff(\2)",strEquation)
+    p=standardre.compile("([a-dA-D][a-zA-Z0-9]*)(\*dot)")
+    return p.sub(r"diff(\1)",strEquation)
 
 def formatVariableName(strEquation):
      p=standardre.compile(r'([a-zA-Z0-9])(_\{)([a-zA-Z0-9])(\})')

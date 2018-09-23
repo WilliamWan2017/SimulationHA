@@ -1,7 +1,7 @@
 grammar PS;
 
 options {
-    language=Python2;
+    language=Python3;
 }
 
 WS: [ \t\r\n]+ -> skip;
@@ -63,7 +63,7 @@ CARET: '^';
 COLON: ':';
 
 fragment WS_CHAR: [ \t\r\n];
-DIFFERENTIAL: 'd' WS_CHAR*? ([a-zA-Z] | '\\' [a-zA-Z]+);
+DIFFERENTIAL: 'd' WS_CHAR? ([a-zA-Z] | '\\' [a-zA-Z]+);
 
 LETTER: [a-zA-Z];
 fragment DIGIT: [0-9];
