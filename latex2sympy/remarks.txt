@@ -1,0 +1,7 @@
+latex2sympy
+latex2sympy parses LaTeX math expressions and converts it into the equivalent SymPy form.
+
+Installation
+ANTLR is used to generate the parser:
+
+$ antlr4 PS.g4 -o gen

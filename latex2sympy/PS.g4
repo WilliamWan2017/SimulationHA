@@ -65,7 +65,7 @@ COLON: ':';
 fragment WS_CHAR: [ \t\r\n];
 DIFFERENTIAL: 'd' WS_CHAR? ([a-zA-Z] | '\\' [a-zA-Z]+);
 
-LETTER: [a-zA-Z];
+LETTER: [a-zA-Z]+;
 fragment DIGIT: [0-9];
 NUMBER:
     DIGIT+ (',' DIGIT DIGIT DIGIT)*
