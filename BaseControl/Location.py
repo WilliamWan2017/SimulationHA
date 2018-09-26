@@ -397,13 +397,13 @@ class LocationItem(QGraphicsItem):
         self.isEnd=isEnd
         self.isNameAbove=isNameAbove
         self.boxName=boxName
-        self.checkPoints=checkPoints
-        self.imageEquation=self.getQImage4Equation()
-        self.imageInvariant=self.getQImage4Invariant()   
+        self.checkPoints=checkPoints  
         self.rect = rect
         self.style = style
         self.setPos(position)
         self.setTransform(matrix)
+        self.imageEquation=self.getQImage4Equation()
+        self.imageInvariant=self.getQImage4Invariant()    
         scene.clearSelection()
         scene.addItem(self)
         self.setSelected(True)
@@ -413,13 +413,22 @@ class LocationItem(QGraphicsItem):
         Dirty = True 
         self.mouseMove=False
         self.mousePress=False
+    def rePaint (self): 
+        self.imageEquation=self.getQImage4Equation()      
+        
     def getQImage4Equation(self ):
         iEditLine=len(self.equation);
-        iHeight=1;
-        if (iEditLine>4):
-            iHeight=0.2*(iEditLine-4)+1;
-        
-        InvariantFig = Figure(figsize=(2.5, iHeight))        
+        iHeight=1.0;
+        iWidth=2.5 
+        #if (iEditLine>4):
+        #    iHeight=0.2*(iEditLine-4)+1; 
+        if hasattr(self,'rect'):
+            # if self.rect.height()>100:
+            #    iHeight=self.rect.height()/100.0
+            if self.rect.width() >200:
+                iWidth=2.5*self.rect.width()/200
+            
+        InvariantFig = Figure(figsize=(iWidth, iHeight))        
         canvas  = FigureCanvas(InvariantFig)  
         SympyLines=[]
         for i in range(iEditLine):
@@ -663,6 +672,7 @@ class LocationItem(QGraphicsItem):
                 self.rect.setBottom(self.rect.bottom() + factor)
                 changed = True
         if changed:
+            #self.rePaint()
             self.update()
             global Dirty
             Dirty = True

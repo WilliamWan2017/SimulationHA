@@ -87,7 +87,7 @@ class MainForm(QDialog):
                # ("List &TextName", self.listTextName), 
                 ("&Open...", self.open),
                 ("&Save", self.save),
-                ("&RePaintLine", self.RePaintLine),
+                ("&RePaint", self.RePaintLine),
                 ("&Quit", self.accept), 
                 #("&SameX", self.SameX), 
                 ("&New Black HA", self.newHA),              
@@ -447,7 +447,11 @@ class MainForm(QDialog):
     
     def RePaintLine(self):
         for line in  self.dicLine.values():
-            line.resetLine();
+            line.resetLine();   
+        for item in  self.dicText.values():
+            item.rePaint(); 
+            item.update()
+            
        # self.scene.update()
     def position(self):
         point = self.mapFromGlobal(QCursor.pos())
