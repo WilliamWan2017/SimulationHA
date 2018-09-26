@@ -85,6 +85,20 @@ def getContinuousVariable(strEquation,Variables):
         return ''; 
     
 def formatSympifySubEquation(strEquation):
+    p1=standardre.compile(r'([a-zA-Z]+)(\()([^()]*)(\))') 
+    p2=standardre.compile(r'(^|[^a-zA-Z])(\()([^()]*)(\))')
+     
+    
+    strTmp=strEquation#p.sub(r'#\2$',strEquation) 
+    while '(' in strTmp: 
+        strTmp=p1.sub(r"S.\1#\3$",strTmp)   
+        strTmp=p2.sub(r"\1#\3$",strTmp)       
+    strTmp=strTmp.replace('#','(')
+    strTmp=strTmp.replace('$',')')    
+    return strTmp
+   
+   
+def formatSympifySubEquation_old(strEquation):
     sympyEquation=['exp','sum','prod','log','ln','sin','cos','tan','csc','sec',
                    'cot','arcsin','arccos','arctan','arccsc','arcsec','arccot',
                    'sinh','cosh','tanh','arcsinh','arccosh','arctanh','sqrt',
