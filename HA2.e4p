@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project HA2 -->
-<!-- Saved: 2018-09-01, 10:59:00 -->
+<!-- Saved: 2018-09-27, 15:13:52 -->
 <!-- Copyright (C) 2018 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -13,7 +13,6 @@
   <Email></Email>
   <Eol index="0"/>
   <Sources>
-    <Source>ApplicationWindow.py</Source>
     <Source>BaseControl/CheckPointItem.py</Source>
     <Source>BaseControl/Edge.py</Source>
     <Source>BaseControl/LineItem.py</Source>
@@ -22,18 +21,9 @@
     <Source>BaseControl/VariableItem.py</Source>
     <Source>BaseControl/__init__.py</Source>
     <Source>FormatParseLatex.py</Source>
-    <Source>QGraphicsItem.py</Source>
     <Source>QGraphicsSaveAsJson.py</Source>
-    <Source>QGraphicsScene.py</Source>
-    <Source>QGraphicsSelf.py</Source>
-    <Source>Ui_mainwindow.py</Source>
     <Source>__init__.py</Source>
-    <Source>main.py</Source>
-    <Source>mathtext_examples.py</Source>
   </Sources>
-  <Forms>
-    <Form>mainwindow.ui</Form>
-  </Forms>
   <Vcs>
     <VcsType>Git</VcsType>
     <VcsOptions>
