@@ -510,30 +510,30 @@ class MainForm(QDialog):
         self.DrawHA( )
     def open(self):
         self.offerSave()
-        path = (QFileInfo(self.filename).path()
-                if self.filename else ".")
+        path ="."# (QFileInfo(self.filename).path()
+                #if self.filename else ".")
         fname,filetype = QFileDialog.getOpenFileName(self,
-                "Page Designer - Open", path,
-                "Page Designer Files (*.json)")
+                "Designer - Open", path,
+                "Designer Files (*.json)")
         if not fname:
             return
         self.filename = fname
         self.clearCurrent()
         fh = None
-        #try:
-        if 1==1:
+        try:
+        #if 1==1:
        
             with open (self.filename, 'r') as fh:        
                 self.currentProject=json.load(fh) 
             self.DrawDefaultHA()
        
-        '''except IOError as e:
-            QMessageBox.warning(self, "Page Designer -- Open Error",
+        except IOError as e:
+            QMessageBox.warning(self, "Designer -- Open Error",
                     "Failed to open {0}: {1}".format(self.filename, e))
         finally:
             if fh is not None:
                 fh.close()
-        '''
+        
         global Dirty
         Dirty = False
 
