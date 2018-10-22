@@ -57,7 +57,7 @@ class LocationItemDlg(QDialog):
         lblIsNameAbove.setBuddy(self.isNameAbove)
         
         self.isInitial=QCheckBox()
-        lblIsInitial=QLabel("IsInitail")
+        lblIsInitial=QLabel("IsInitial")
         lblIsInitial.setBuddy(self.isInitial)
         
         self.isEnd=QCheckBox()

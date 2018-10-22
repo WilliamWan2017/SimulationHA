@@ -216,7 +216,7 @@ class MainForm(QDialog):
             newDirty=True
         global Dirty
         Dirty=newDirty 
-    
+    #create a blank HA
     def newHA(self):
         if self.txtHAName.text()=="NoName":
             if (Dirty):
@@ -235,6 +235,7 @@ class MainForm(QDialog):
         self.clearCurrent()
         self.txtHAName.setText("NoName")
         self.currentHA=None 
+    # create a new HA who has locations, edges and variables as same as the selected HA
     def copyHA(self):
         global Dirty
         if self.txtHAName.text()=="NoName":
@@ -265,7 +266,7 @@ class MainForm(QDialog):
         self.currentHA=None
         self.setDirty()
        
-        
+    # change to current designed HA by select another HA name in “HA Name List” 
     def switchHA(self):
         if self.txtHAName.text()=="NoName":
             if (Dirty):
@@ -292,6 +293,7 @@ class MainForm(QDialog):
         self.cmbHANameList.setEditText(NewHAName )
         self.txtHAName.setText(self.cmbHANameList.currentText())
         self.DrawHA()
+        #delete an HA whose name is selected in “Ha Name List”. 
     def deleteHA(self):
         strHAName=self.txtHAName.text() 
         if (strHAName in self.currentProject["Models"][self.txtModelName.text()]["HAs"].keys()):
@@ -304,24 +306,26 @@ class MainForm(QDialog):
                 json.dump(self.currentProject, fh)
         self.setDirty(False)
         self.DrawDefaultHA() 
+        #edit selected edge
     def EdgeWidgetDoubleClicked(self, item):
         selectItemText= self.EdgeWidget.item(item.row(), 0).text()
         if selectItemText in self.dicLine:
             dialog = EdgeItemDlg(self.dicLine[selectItemText],   None,self.scene, self )
             dialog.exec_() 
             
-            
+    #edit selected Variable 
     def VariablesWidgetDoubleClicked(self, item):
         selectItemText= self.VariablesWidget.item(item.row(), 0).text()
         if selectItemText in self.dicVariable:
             dialog = VariableItemDlg(self.dicVariable[selectItemText],  self )
             dialog.exec_() 
-    
+    #delete location
     def deleteText (self, LocationItem):
         if LocationItem.boxName in self.dicText:
             self.dicText.pop(LocationItem.boxName)
         self.scene.removeItem(LocationItem)        
         self.scene.update()
+    #delete edge
     def deleteLine(self, lineItem):
         self.dicLine.pop(lineItem.boxName)
         self.scene.removeItem(lineItem)        
@@ -331,12 +335,14 @@ class MainForm(QDialog):
             if self.EdgeWidget.item(row_index, 0).text()==lineItem.boxName: 
                 self.EdgeWidget.removeRow(row_index)
                 return
+    #rename edge
     def renameLine(self, OldName, NewName):       
         rowCount=self.EdgeWidget.rowCount()
         for row_index in range(rowCount):
             if self.EdgeWidget.item(row_index, 0).text()==OldName:
                 self.EdgeWidget.setItem(row_index, 0, QTableWidgetItem( NewName, 0))
-                return           
+                return     
+    #delete variable
     def deleteVariable(self, VariableItem):
         self.dicVariable.pop(VariableItem.boxName) 
         rowCount=self.VariablesWidget.rowCount()
@@ -344,12 +350,15 @@ class MainForm(QDialog):
             if self.VariablesWidget.item(row_index, 0).text()==VariableItem.boxName: 
                 self.VariablesWidget.removeRow(row_index)
                 return
+    #rename variable
     def renameVariable(self, OldName, NewName):       
         rowCount=self.VariablesWidget.rowCount()
         for row_index in range(rowCount):
             if self.VariablesWidget.item(row_index, 0).text()==OldName:                 
                 self.VariablesWidget.setItem(row_index, 0, QTableWidgetItem( NewName, 0))
                 return
+                
+    # add a variable
     def addVariableInTable(self, variableItem):
         row_index=self.VariablesWidget.rowCount()
         self.VariablesWidget.insertRow(row_index)
@@ -362,52 +371,45 @@ class MainForm(QDialog):
         self.VariablesWidget.resizeRowToContents(row_index)
         self.VariablesWidget.resizeRowsToContents()
         self.VariablesWidget.resizeColumnsToContents()
-        
-        #self.VariablesWidget.setCellWidget(row_index, 2,  CheckWidget(  variableItem.isInput, self)) 
-        #self.VariablesWidget.setCellWidget(row_index, 3,  CheckWidget(  variableItem.isOutput, self))
-    
+         
+    #update variable
     def setVariableInTable(self, variableItem):        
         rowCount=self.VariablesWidget.rowCount()
         for row_index in range(rowCount):
             if self.VariablesWidget.item(row_index, 0).text()==variableItem.boxName:                  
-                #self.VariablesWidget.setCellWidget(row_index, 1, ImgWidget(  variableItem.getQPixmap4Variable(), self))
-                #self.VariablesWidget.setCellWidget(row_index, 2,  CheckWidget(  variableItem.isInput, self)) 
-                #self.VariablesWidget.setCellWidget(row_index, 3,  CheckWidget(  variableItem.isOutput, self))
-         
+                
                 self.VariablesWidget.setItem(row_index, 1, QTableWidgetItem(  variableItem.initialValue, 0))
                 self.VariablesWidget.setItem(row_index, 2, QTableWidgetItem( str(variableItem.isInput), 0))
                 self.VariablesWidget.setItem(row_index, 3, QTableWidgetItem( str(variableItem.isOutput), 0))
                 self.VariablesWidget.setItem(row_index, 4, QTableWidgetItem( str(variableItem.isConstant), 0))
                 self.VariablesWidget.resizeRowToContents(row_index)
-                self.VariablesWidget.resizeColumnsToContents()
-          #ui->tableWidget->resizeRowToContents(curRow)
+                self.VariablesWidget.resizeColumnsToContents() 
                 return
+    #add an Edge
     def addEdgeInTable(self, edgeItem):
         row_index=self.EdgeWidget.rowCount()
         self.EdgeWidget.insertRow(row_index)
         row_index=row_index
         self.EdgeWidget.setItem(row_index, 0, QTableWidgetItem( edgeItem.boxName, 0))        
         self.EdgeWidget.setItem(row_index, 1, QTableWidgetItem( edgeItem.guard, 0))        
-        self.EdgeWidget.setItem(row_index, 2, QTableWidgetItem( edgeItem.reset, 0))
-        #self.EdgeWidget.setCellWidget(row_index, 1, ImgWidget(  edgeItem.getQPixmap4Guard(), self))
-        #self.EdgeWidget.setCellWidget(row_index, 2,  ImgWidget(  edgeItem.getQPixmap4Reset(), self))
+        self.EdgeWidget.setItem(row_index, 2, QTableWidgetItem( edgeItem.reset, 0)) 
         self.EdgeWidget.resizeRowToContents(row_index)        
         self.EdgeWidget.resizeRowsToContents()
         self.EdgeWidget.resizeColumnsToContents()
+        
+    #update an Edge
     def setEdgeInTable(self, edgeItem):        
         rowCount=self.EdgeWidget.rowCount()
         for row_index in range(rowCount):
             if self.EdgeWidget.item(row_index, 0).text()==edgeItem.boxName:  
                 self.EdgeWidget.setItem(row_index, 1, QTableWidgetItem( edgeItem.guard, 0))       
-                self.EdgeWidget.setItem(row_index, 2, QTableWidgetItem( edgeItem.reset, 0))
-                #self.EdgeWidget.setCellWidget(row_index, 1, ImgWidget(  edgeItem.getQPixmap4Guard(), self))
-                #self.EdgeWidget.setCellWidget(row_index, 2,  ImgWidget(  edgeItem.getQPixmap4Reset(), self))
+                self.EdgeWidget.setItem(row_index, 2, QTableWidgetItem( edgeItem.reset, 0)) 
                 self.EdgeWidget.resizeRowToContents(row_index)
                 self.EdgeWidget.resizeColumnsToContents()
                 return
          
 
-        
+    #add a new location
     def addLocation(self):
         dialog = LocationItemDlg(position=self.position(),
                              scene=self.scene, parent=self)
@@ -417,6 +419,7 @@ class MainForm(QDialog):
           buttonReply = QMessageBox.question(self, 'PyQt5 message', str(self.dicLine.keys()), QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
 
+    #add a new Variable
     def addVariable(self):
         dialog = VariableItemDlg( parent=self)
         dialog.exec_()
@@ -439,12 +442,15 @@ class MainForm(QDialog):
 
         #fig.subplots_adjust(left=0, right=1,                    top=1, bottom=0,                    hspace=0, wspace=0)
         plt.show()
+        
+    
+    #add a new Edge
     def addEdge(self):
         dialog = EdgeItemDlg(position=self.position(),
                             scene=self.scene, parent=self)
         dialog.exec_()
     
-    
+    #to refresh the design file
     def RePaintLine(self):
         for line in  self.dicLine.values():
             line.resetLine();   
@@ -466,6 +472,7 @@ class MainForm(QDialog):
                 self.addOffset = 5
                 self.prevPoint = point
         return self.view.mapToScene(point)
+    #clear the screen and ready to draw a new HA
     def clearCurrent(self):
         
         self.EdgeWidget.clearContents()
@@ -483,6 +490,7 @@ class MainForm(QDialog):
         self.dicLine={}
         self.dicText={}
         self.dicVariable={}
+    #show a HA on screen
     def DrawHA(self, currentHA=None):
         if (currentHA is None):
             if not self.txtModelName.text() in self.currentProject["Models"].keys():
@@ -496,6 +504,8 @@ class MainForm(QDialog):
             self.readItemFrom( item) 
         self.DrawLine(self.currentHA["lines"])
         self.DrawVariable(self.currentHA["variables"])
+    
+    #show Default HA on screen
     def DrawDefaultHA(self):
         if ("NoName" in self.currentProject["Models"].keys()) or  len( self.currentProject["Models"])==0:
             self.txtModelName.setText("NoName")
@@ -508,6 +518,7 @@ class MainForm(QDialog):
         self.cmbHANameList.clear()
         self.cmbHANameList.addItems([key for key in self.currentProject["Models"][self.txtModelName.text()]["HAs"].keys()])   
         self.DrawHA( )
+    # load a exists HA file to edit
     def open(self):
         self.offerSave()
         path ="."# (QFileInfo(self.filename).path()
@@ -537,7 +548,7 @@ class MainForm(QDialog):
         global Dirty
         Dirty = False
 
-
+   
     def reject(self):
         self.accept()
 
@@ -546,7 +557,7 @@ class MainForm(QDialog):
         self.offerSave()
         QDialog.accept(self)
 
-
+    #save the current HA
     def offerSave(self):
         if self.currentHA is not None:
             if not self.currentHA["name"]==self.txtHAName.text():
@@ -578,6 +589,9 @@ class MainForm(QDialog):
         for box in self.scene.selectedItems():
             box.setPos(box.x(),y)
         self.scene.update()
+        
+        
+    #save the current HA
     def save(self):
         if not self.filename:
             path = "."
@@ -630,17 +644,10 @@ class MainForm(QDialog):
    
             with open (self.filename, 'w') as fh:             
                 json.dump(self.currentProject, fh)
-            
-        #except IOError as e:
-        #    QMessageBox.warning(self, "Page Designer -- Save Error",
-        #            "Failed to save {0}: {1}".format(self.filename, e))
-        #finally:
-        #    if fh is not None:
-        #       fh.close()
-        #    pass
+             
         global Dirty
         Dirty = False 
-
+    #show current variables in screen
     def DrawVariable(self, Variables):
             #draw lines between diffenent Loaation
             for key, ln in Variables.items():
@@ -652,6 +659,8 @@ class MainForm(QDialog):
                     v=VariableItem( ln["boxName"],ln["isInput"], ln["isOutput"], ln["isConstant"], ln["initialValue"], self)    
                     self.dicVariable[v.boxName]=v                
                     self.addVariableInTable(v)
+                    
+    #show current edges in screen
     def DrawLine(self, Lines):
             #draw lines between diffenent Loaation
             for key, ln in Lines.items():
@@ -675,6 +684,9 @@ class MainForm(QDialog):
                         self.dicLine[ln["boxName"]]=n;
                         n.setRotation(ln["rotation"])
                         self.addEdgeInTable(n)
+                        
+    
+    #show current edges in screen
     def DrawLineFromRead(self):
             #draw lines between diffenent Loaation
             for key, ln in self.dicItem.items():
@@ -698,6 +710,9 @@ class MainForm(QDialog):
                         self.dicLine[ln["boxName"]]=n;
                         n.setRotation(ln["rotation"])
                         self.addEdgeInTable(n)
+                        
+    
+    #get a HA from file 
     def readItemFrom(self, item): 
         if item["type"] == "Text": 
             tx=TextItem(item, '', '',  self.scene, self)
